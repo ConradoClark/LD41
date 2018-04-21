@@ -11,19 +11,19 @@ MonoBehaviour:
   m_Script: {fileID: -667331979, guid: 89f0137620f6af44b9ba852b4190e64e, type: 3}
   m_Name: MAKISUPA SDF
   m_EditorClassIdentifier: 
-  hashCode: 0
+  hashCode: 629317128
   material: {fileID: 21915937595889876}
-  materialHashCode: 0
+  materialHashCode: -853400957
   fontAssetType: 1
   m_fontInfo:
     Name: Makisupa
     PointSize: 65
-    Scale: 0
+    Scale: 1
     CharacterCount: 97
     LineHeight: 84.5
     Baseline: 0
     Ascender: 71.5
-    CapHeight: 0
+    CapHeight: 55.25
     Descender: -13
     CenterLine: 0
     SuperscriptOffset: 71.5
@@ -33,7 +33,7 @@ MonoBehaviour:
     UnderlineThickness: 1.95
     strikethrough: 21.272728
     strikethroughThickness: 1.95
-    TabWidth: 0
+    TabWidth: 195
     Padding: 5
     AtlasWidth: 512
     AtlasHeight: 512
@@ -42,10 +42,10 @@ MonoBehaviour:
   - id: 32
     x: 6
     y: 517
-    width: 0
-    height: 0
+    width: 19.5
+    height: 84.5
     xOffset: 0
-    yOffset: 0
+    yOffset: 71.5
     xAdvance: 19.5
     scale: 1
   - id: 33
@@ -967,7 +967,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: MAKISUPA SDF Material
   m_Shader: {fileID: 4800000, guid: dca26082f9cb439469295791d9f76fe5, type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords: BEVEL_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -998,16 +998,16 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _Ambient: 0.5
-    - _Bevel: 0.5
+    - _Ambient: 0.684
+    - _Bevel: 0.42
     - _BevelClamp: 0
-    - _BevelOffset: 0
-    - _BevelRoundness: 0
-    - _BevelWidth: 0
+    - _BevelOffset: 0.016
+    - _BevelRoundness: 0.472
+    - _BevelWidth: 0.22
     - _BumpFace: 0
     - _BumpOutline: 0
     - _ColorMask: 15
-    - _Diffuse: 0.5
+    - _Diffuse: 0.576
     - _FaceDilate: 0
     - _FaceUVSpeedX: 0
     - _FaceUVSpeedY: 0
@@ -1016,7 +1016,7 @@ Material:
     - _GlowOuter: 0.05
     - _GlowPower: 0.75
     - _GradientScale: 6
-    - _LightAngle: 3.1416
+    - _LightAngle: 0.85
     - _MaskSoftnessX: 0
     - _MaskSoftnessY: 0
     - _OutlineSoftness: 0
@@ -1024,14 +1024,14 @@ Material:
     - _OutlineUVSpeedY: 0
     - _OutlineWidth: 0
     - _PerspectiveFilter: 0.875
-    - _Reflectivity: 10
-    - _ScaleRatioA: 1
-    - _ScaleRatioB: 1
-    - _ScaleRatioC: 1
+    - _Reflectivity: 8.6
+    - _ScaleRatioA: 0.8333333
+    - _ScaleRatioB: 0.6770833
+    - _ScaleRatioC: 0.6770833
     - _ScaleX: 1
     - _ScaleY: 1
-    - _ShaderFlags: 0
-    - _SpecularPower: 2
+    - _ShaderFlags: 1
+    - _SpecularPower: 3.38
     - _Stencil: 0
     - _StencilComp: 8
     - _StencilOp: 0
