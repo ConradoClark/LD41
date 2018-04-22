@@ -18,7 +18,7 @@ namespace Assets.Scripts.CardGame.CardLogic
     {
         public static ICard GetAction(this CardEnum card)
         {
-            if (DeckManager.CardsLogic.ContainsKey(card)) return DeckManager.CardsLogic[card];
+            if (Toolbox.Instance.DeckManager.CardsLogic.ContainsKey(card)) return Toolbox.Instance.DeckManager.CardsLogic[card];
             return null;
         }
     }

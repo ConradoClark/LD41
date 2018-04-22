@@ -95,7 +95,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HelpCaption: <#89d962> Move Right
-  HelpDescription: Moves right by <#89d962> 1 </color> tile.
+  HelpDescription: Move right by <#89d962> 1 </color> tile.
 --- !u!212 &212207719339127408
 SpriteRenderer:
   m_ObjectHideFlags: 1

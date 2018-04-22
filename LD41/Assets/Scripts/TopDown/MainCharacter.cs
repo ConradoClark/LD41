@@ -7,10 +7,15 @@ public class MainCharacter : MonoBehaviour
 {
     public CharacterStats Stats;
     public Transform CharacterTransform;
+    public Animator Animator;
+    public GridObject GridObject;
     private bool IsMoving;
     private Queue<long> _moveCoroutines = new Queue<long>();
     private static long _move = 0;
     private LevelGrid _levelGrid;
+    private Vector2 _currentSpeed;
+    private Vector2 _currentDirection = Vector2.down;
+    
     // Use this for initialization
     void Start()
     {
@@ -22,8 +27,19 @@ public class MainCharacter : MonoBehaviour
     {
         if (!IsMoving)
         {
+            CharacterTransform.position = Vector2.SmoothDamp(CharacterTransform.position,
+                _levelGrid.CenterInGrid(CharacterTransform.position),
+                ref _currentSpeed,
+                1.0f,
+                1.0f,
+                Time.deltaTime);
             // LERP TO GRID
         }
+    }
+
+    public Vector2 GetDirection()
+    {
+        return _currentDirection;
     }
 
     public void UpdateStatsText()
@@ -46,9 +62,10 @@ public class MainCharacter : MonoBehaviour
     public void Move(Direction direction)
     {
         Vector2 dirVector = Vector2.right;
+        Animator.SetInteger("direction", (int)direction);
         switch (direction)
         {
-            case (Direction.Right):
+            case (Direction.Right):                
                 dirVector = Vector2.right;
                 break;
             case (Direction.Left):
@@ -61,6 +78,7 @@ public class MainCharacter : MonoBehaviour
                 dirVector = Vector2.down;
                 break;
         }
+        _currentDirection = dirVector;
         _moveCoroutines.Enqueue(++_move);
         StartCoroutine(Move(dirVector, _move));
     }
@@ -73,12 +91,12 @@ public class MainCharacter : MonoBehaviour
         }
 
         if (CharacterTransform == null) yield break;
-        IsMoving = true;        
+        IsMoving = true;
+        Animator.SetBool("walking", true);
         Vector2 startingPos = CharacterTransform.transform.position;
         Vector2 endingPos = startingPos + translation;
 
         int[] gridEndingPos = _levelGrid.Vector2ToGrid(endingPos);
-        Debug.LogWarning("POS: X" + gridEndingPos[0] + " Y" + gridEndingPos[1]);
         bool isBlocking = _levelGrid.IsBlocking(gridEndingPos[0], gridEndingPos[1]);
         if (isBlocking)
         {
@@ -112,6 +130,7 @@ public class MainCharacter : MonoBehaviour
         }
 
         IsMoving = false;
+        Animator.SetBool("walking", false);
         _moveCoroutines.Dequeue();
     }
 }

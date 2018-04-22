@@ -14,19 +14,21 @@ public class DeckManager : MonoBehaviour
         public PoolInstance PrefabPoolInstance;
     }
     public CardAssociation[] CardDatabase;
+    public PoolInstance SlashInstance;
 
-    public static Dictionary<CardEnum, ICard> CardsLogic = new Dictionary<CardEnum, ICard>()
-    {
-        {CardEnum.MoveRight, new MoveOneCard(Direction.Right) },
-        {CardEnum.MoveLeft, new MoveOneCard(Direction.Left) },
-        {CardEnum.MoveUp, new MoveOneCard(Direction.Up) },
-        {CardEnum.MoveDown, new MoveOneCard(Direction.Down) },
-    };
+    public Dictionary<CardEnum, ICard> CardsLogic;
 
     // Use this for initialization
     void Start()
     {
-
+        CardsLogic = new Dictionary<CardEnum, ICard>()
+        {
+            {CardEnum.MoveRight, new MoveOneCard(Direction.Right) },
+            {CardEnum.MoveLeft, new MoveOneCard(Direction.Left) },
+            {CardEnum.MoveUp, new MoveOneCard(Direction.Up) },
+            {CardEnum.MoveDown, new MoveOneCard(Direction.Down) },
+            {CardEnum.AttackSlash, new SlashCard(SlashInstance) },
+        };
     }
 
     // Update is called once per frame

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace Assets.Scripts.CardGame.CardLogic
 {
@@ -14,7 +15,7 @@ namespace Assets.Scripts.CardGame.CardLogic
         {
             _direction = direction;
         }
-        public IEnumerator DoLogic(EventHandler<EventArgs> onAfterUse)
+        public IEnumerator DoLogic(MonoBehaviour unity, EventHandler<EventArgs> onAfterUse)
         {
             MainCharacter mainCharacter;
             if (Toolbox.TryGetMainCharacter(out mainCharacter))

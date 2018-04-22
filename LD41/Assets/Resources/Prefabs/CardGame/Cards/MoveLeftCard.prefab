@@ -80,7 +80,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HelpCaption: <#89d962> Move Left
-  HelpDescription: Moves left by <#89d962> 1 </color> tile.
+  HelpDescription: Move left by <#89d962> 1 </color> tile.
 --- !u!114 &114906662242807032
 MonoBehaviour:
   m_ObjectHideFlags: 1
