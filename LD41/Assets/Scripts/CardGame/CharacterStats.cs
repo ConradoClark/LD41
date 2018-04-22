@@ -4,6 +4,14 @@ using UnityEngine;
 
 public class CharacterStats : MonoBehaviour {
 
+    public int Draw;
+    public int Attack;
+    public int Defense;
+    public int Shuffle;
+    public int Discard;
+    public int Agility;
+    public int PawSize;
+
 	// Use this for initialization
 	void Start () {
 		

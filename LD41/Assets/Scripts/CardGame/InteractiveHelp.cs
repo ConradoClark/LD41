@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 
 public class InteractiveHelp : MonoBehaviour
@@ -13,8 +14,11 @@ public class InteractiveHelp : MonoBehaviour
     private const string HelpPrefix = "HELP";
     private Queue<long> _titleCoroutines = new Queue<long>();
     private Queue<long> _descriptionCoroutines = new Queue<long>();
-    private static long coroutineId;
+    private long coroutineId;
     public string DefaultDescription;
+    private string currentTitle;
+    private string currentDescription;
+    private long cancel;
 
     // Use this for initialization
     void Awake()
@@ -36,91 +40,75 @@ public class InteractiveHelp : MonoBehaviour
 
     private void _cardUI_OnHelpReset(object sender, EventArgs e)
     {
-        coroutineId++;
-        _titleCoroutines.Enqueue(coroutineId);
-        _descriptionCoroutines.Enqueue(coroutineId);
-        StartCoroutine(SetTitle(coroutineId, HelpPrefix));
-        StartCoroutine(SetDescription(coroutineId, DefaultDescription));
+        //coroutineId++;
+        //_titleCoroutines.Enqueue(coroutineId);
+        //_descriptionCoroutines.Enqueue(coroutineId);
+        //StartCoroutine(SetText(coroutineId, _titleCoroutines, _cardUI.HelpTitle, HelpPrefix, 4));
+        //StartCoroutine(SetText(coroutineId, _descriptionCoroutines, _cardUI.HelpDescription, DefaultDescription));
+        //StartCoroutine(SetTitle(coroutineId, HelpPrefix));
+        //StartCoroutine(SetDescription(coroutineId, DefaultDescription));
     }
 
     private void _cardUI_OnHelpChanged(object sender, CardUI.OnHelpChangedEventHandler e)
     {
         if (e == null) return;
+        string helpTitle = HelpPrefix + e.Title;
+        if (currentTitle == helpTitle && currentDescription == e.Description) return;
+
+        cancel = coroutineId;
         coroutineId++;
         _titleCoroutines.Enqueue(coroutineId);
         _descriptionCoroutines.Enqueue(coroutineId);
-        StartCoroutine(SetTitle(coroutineId, e.Title));
-        StartCoroutine(SetDescription(coroutineId, e.Description));
+
+        currentTitle = helpTitle;
+        currentDescription = e.Description;
+        StartCoroutine(SetText(coroutineId, _titleCoroutines, _cardUI.HelpTitle, helpTitle, 4));
+        StartCoroutine(SetText(coroutineId, _descriptionCoroutines, _cardUI.HelpDescription, e.Description));
     }
 
-    IEnumerator SetTitle(long coroutineId, string title)
+    IEnumerator SetText(long coroutineId, Queue<long> coroutineQueue, TextMeshPro textComponent, string content, int minLength=0)
     {
-        int frequency = 2;
-        int currentFrequency=0;
-        while (_titleCoroutines.Count > 0 && _titleCoroutines.Peek() != coroutineId) yield return 0;
-        while (_cardUI.HelpTitle.text.Length > HelpTitleDefaultSize)
+        while(coroutineQueue.Count > 1)
         {
-            int len = _cardUI.HelpTitle.text.Length - 1;
-            if (_cardUI.HelpTitle.text.LastOrDefault() == '>' && _cardUI.HelpTitle.text.LastIndexOf('<') > 0)
+            if (coroutineId <= cancel)
             {
-                len = _cardUI.HelpTitle.text.LastIndexOf('<');
+                coroutineQueue.Dequeue();
+                yield break;
             }
-   
-            _cardUI.HelpTitle.text = _cardUI.HelpTitle.text.Substring(0, Math.Max(0, len));
-
-            if (currentFrequency++ % frequency == 0)
-            {
-                yield return new WaitForSeconds(0.01f);
-            }
+            yield return new WaitForEndOfFrame();
         }
-
-        string strNewTitle = title;
-        while (title != HelpPrefix && !string.IsNullOrEmpty(strNewTitle) && _cardUI.HelpTitle.text.Length < HelpPrefix.Length + title.Length)
-        {
-            string str = strNewTitle.First() == '<' && strNewTitle.IndexOf(">") > 0 ? strNewTitle.Substring(0, strNewTitle.IndexOf(">") + 1) : strNewTitle.First().ToString();
-            strNewTitle = strNewTitle.Substring(str.Length);
-            _cardUI.HelpTitle.text += str;
-            if (currentFrequency++ % frequency == 0)
-            {
-                yield return new WaitForSeconds(0.01f);
-            }
-        }
-        _titleCoroutines.Dequeue();
-    }
-
-    IEnumerator SetDescription(long coroutineId, string description)
-    {
         int frequency = 2;
         int currentFrequency = 0;
-        while (_descriptionCoroutines.Count > 0 && _descriptionCoroutines.Peek() != coroutineId) yield return 0;
-        while (_cardUI.HelpDescription.text.Length > 0)
+        while (coroutineQueue.Count > 0 && coroutineQueue.Peek() != coroutineId)
         {
-            int len = _cardUI.HelpDescription.text.Length - 1;
-            if (_cardUI.HelpDescription.text.LastOrDefault() == '>' && _cardUI.HelpDescription.text.LastIndexOf('<') > 0)
+            if (coroutineId <= cancel)
             {
-                len = _cardUI.HelpDescription.text.LastIndexOf('<');
+                coroutineQueue.Dequeue();
+                yield break;
             }
 
-            _cardUI.HelpDescription.text = _cardUI.HelpDescription.text.Substring(0, Math.Max(0, len));
-            if (currentFrequency++ % frequency == 0)
-            {
-                yield return new WaitForSeconds(0.01f);
-            }
+            yield return 0;
         }
+        textComponent.text = textComponent.text.Substring(0, minLength);
 
-        string strNewDescription = description;
-        while (!string.IsNullOrEmpty(strNewDescription) && _cardUI.HelpDescription.text.Length < HelpPrefix.Length + description.Length)
+        if (!string.IsNullOrEmpty(content) && textComponent.text.Length < content.Length)
         {
-            string str = strNewDescription.First() == '<' && strNewDescription.IndexOf(">") > 0 ? strNewDescription.Substring(0, strNewDescription.IndexOf(">") + 1) : strNewDescription.First().ToString();
-            strNewDescription = strNewDescription.Substring(str.Length);
-            _cardUI.HelpDescription.text += str;
-            if (currentFrequency++ % frequency == 0)
+            string strNewDescription = content.Substring(minLength);
+            while (!string.IsNullOrEmpty(strNewDescription) && textComponent.text.Length < content.Length)
             {
-                yield return new WaitForSeconds(0.01f);
+                if (coroutineId <= cancel) break;
+                string str = strNewDescription.First() == '<' && strNewDescription.IndexOf(">") > 0 ? strNewDescription.Substring(0, strNewDescription.IndexOf(">") + 1) : strNewDescription.First().ToString();
+                strNewDescription = strNewDescription.Substring(str.Length);
+                textComponent.text += str;
+                if (currentFrequency++ % frequency == 0)
+                {
+                    yield return new WaitForSeconds(0.01f);
+                }
             }
         }
-        _descriptionCoroutines.Dequeue();
+        coroutineQueue.Dequeue();
     }
+
 
     // Update is called once per frame
     void Update()

@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Paw : MonoBehaviour {
 
+    public bool OnCooldown { get; private set; }
+    
 	// Use this for initialization
 	void Start () {
 		
@@ -13,4 +15,9 @@ public class Paw : MonoBehaviour {
 	void Update () {
 		
 	}
+
+    public void AddCard(Card card)
+    {
+
+    }
 }
