@@ -10,6 +10,7 @@ public class PawSlot : MonoBehaviour {
     private Deck _deck;
     public bool Unlocked;
     public Card CurrentCard;
+    public DiscardButton DiscardButton;
 
     // Use this for initialization
     void Start() {
@@ -20,6 +21,16 @@ public class PawSlot : MonoBehaviour {
         }
 
         Toolbox.Instance.OnPostInit += Instance_OnPostInit;
+        DiscardButton.OnButtonPressed += DiscardButton_OnButtonPressed;
+        DiscardButton.SlotOpen = Unlocked;
+
+    }
+
+    private void DiscardButton_OnButtonPressed(object sender, System.EventArgs e)
+    {
+        if (CurrentCard == null) return;
+        Toolbox.Instance.DiscardCounter.Decrease();
+        Discard(this.CurrentCard);
     }
 
     private void Instance_OnPostInit(object sender, System.EventArgs e)
@@ -29,7 +40,7 @@ public class PawSlot : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-
+        DiscardButton.SlotOpen = Unlocked && Occupied;
     }
 
     public bool DrawCard(Card card)
@@ -47,12 +58,32 @@ public class PawSlot : MonoBehaviour {
 
     private void Card_OnUsing(object sender, Card.CardEvent e)
     {
+        Discard(e.Card);
+    }
+
+    private void Discard(Card card)
+    {
         CurrentCard = null;
         Occupied = false;
-        _deck.AddToDiscardPile(e.Card);
+        _deck.AddToDiscardPile(card);
+        card.OnUsing -= Card_OnUsing;
         // Start a coroutine for animations and stuff
-        Toolbox.Instance.Pool.Release(e.Card.PoolInstance, e.Card.Instance);
+        Toolbox.Instance.Pool.Release(card.PoolInstance, card.Instance);
         StartCoroutine(_deck.ReorganizePaw());
+    }
+
+    public void SendToDeck(Card card, bool reorganize = true)
+    {
+        CurrentCard = null;
+        Occupied = false;
+        _deck.AddToDrawPile(card);
+        card.OnUsing -= Card_OnUsing;
+        // Start a coroutine for animations and stuff
+        Toolbox.Instance.Pool.Release(card.PoolInstance, card.Instance);
+        if (reorganize)
+        {
+            StartCoroutine(_deck.ReorganizePaw());
+        }
     }
 
     public static void Migrate(PawSlot source, PawSlot dest)

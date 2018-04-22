@@ -12,6 +12,7 @@ public class Toolbox : Singleton<Toolbox>
     public InteractiveHelp InteractiveHelp { get; set; }
     public MainCharacter MainCharacter { get; set; }
     public Deck Deck { get; set; }
+    public DiscardCounter DiscardCounter { get; set; }
     public DeckManager DeckManager { get; set; }
     public LevelGrid LevelGrid { get; set; }
     public event EventHandler<EventArgs> OnPostInit;

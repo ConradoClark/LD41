@@ -76,8 +76,18 @@ public class MainCharacter : MonoBehaviour
         IsMoving = true;        
         Vector2 startingPos = CharacterTransform.transform.position;
         Vector2 endingPos = startingPos + translation;
+
+        int[] gridEndingPos = _levelGrid.Vector2ToGrid(endingPos);
+        Debug.LogWarning("POS: X" + gridEndingPos[0] + " Y" + gridEndingPos[1]);
+        bool isBlocking = _levelGrid.IsBlocking(gridEndingPos[0], gridEndingPos[1]);
+        if (isBlocking)
+        {
+            endingPos = startingPos + (translation / 4);
+        }
+
+        float max = isBlocking ? 0.50f : 1f;
         float time = 0f;
-        while (time < 1f)
+        while (time < max)
         {
             var lerp = Mathf.SmoothStep(0, 1, time);
             CharacterTransform.transform.position =
@@ -86,6 +96,21 @@ public class MainCharacter : MonoBehaviour
             time += Time.deltaTime;
             yield return new WaitForEndOfFrame();
         }
+
+        if (isBlocking)
+        {
+            time = 0.5f;
+            while (time < 1f)
+            {
+                var lerp = Mathf.SmoothStep(0, 1, time);
+                CharacterTransform.transform.position =
+                     Vector2.Lerp(endingPos, startingPos, Mathf.Min(lerp, 1f));
+
+                time += Time.deltaTime;
+                yield return new WaitForEndOfFrame();
+            }
+        }
+
         IsMoving = false;
         _moveCoroutines.Dequeue();
     }

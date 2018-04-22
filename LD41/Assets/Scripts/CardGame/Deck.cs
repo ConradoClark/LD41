@@ -110,9 +110,32 @@ public class Deck : MonoBehaviour
         Shuffle(_cardPile);
     }
 
+    public IEnumerator ShufflePawIntoCardPile()
+    {
+        var list = _slots.Where(s => s.Occupied).ToList();
+        foreach (var slot in list)
+        {
+            slot.SendToDeck(slot.CurrentCard, false);
+            UpdateUI();
+
+            if (slot != list.Last())
+            {
+                yield return new WaitForSeconds(opSpeed);
+            }
+        }
+        Shuffle(_cardPile);
+        StartCoroutine(ReorganizePaw());
+    }
+
     public void AddToDiscardPile(Card card)
     {
         _discardPile.Push(card);
+        UpdateUI();
+    }
+
+    public void AddToDrawPile(Card card)
+    {
+        _cardPile.Push(card);
         UpdateUI();
     }
 
