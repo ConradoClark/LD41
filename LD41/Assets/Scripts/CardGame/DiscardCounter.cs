@@ -26,7 +26,7 @@ public class DiscardCounter : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-        _discards += _mainCharacter.Stats.Agility * widthGrowth * 0.1f * Time.deltaTime;
+        _discards += _mainCharacter.Stats.Agility * widthGrowth * 0.3f * Time.deltaTime;
         _discards = Mathf.Clamp(_discards, 0, _mainCharacter.Stats.Discard);
         UpdateSprite();
     }

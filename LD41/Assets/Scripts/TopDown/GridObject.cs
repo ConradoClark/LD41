@@ -5,9 +5,9 @@ using UnityEngine;
 
 public class GridObject : MonoBehaviour {
 
-
-	// Use this for initialization
-	void Start () {
+    public bool Blocking;
+    // Use this for initialization
+    void Start () {
         LevelGrid levelGrid;
 		if (Toolbox.TryGetLevelGrid(out levelGrid))
         {

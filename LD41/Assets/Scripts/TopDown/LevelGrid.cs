@@ -14,7 +14,7 @@ public class LevelGrid : MonoBehaviour
         public Dictionary<string, object> Values;
     }
 
-    public EventHandler<GridActionEventArgs> OnGridAction;
+    public event EventHandler<GridActionEventArgs> OnGridAction;
 
     [Serializable]
     public class ObjectTile
@@ -182,7 +182,8 @@ public class LevelGrid : MonoBehaviour
         return Map[y][x].Any(c =>
         {
             return TileDictionary[c].Blocking;
-        });
+        }) ||
+        _gridObjects.Any(g => g.Blocking && Vector2ToGrid(g.transform.position).SequenceEqual(new[] { x, y }));
     }
 
     public int[] Vector2ToGrid(Vector2 pos)
@@ -218,20 +219,20 @@ public class LevelGrid : MonoBehaviour
         return _gridObjects.Where(g => Vector2ToGrid(g.transform.position).SequenceEqual(gridPos)).ToArray();
     }
 
-    public void TriggerGridEvent(string action, GridObject source, Dictionary<string,object> values)
+    public void TriggerGridEvent(string action, GridObject source, int[] targetTile, Dictionary<string,object> values)
     {
         if (OnGridAction == null) return;
         var sourceGridPos = Vector2ToGrid(source.transform.position);
         foreach(var obj in _gridObjects)
         {
             var objGridPos = Vector2ToGrid(obj.transform.position);
-            if (sourceGridPos.SequenceEqual(objGridPos))
+            if (targetTile.SequenceEqual(objGridPos))
             {                
                 OnGridAction.Invoke(this, new GridActionEventArgs()
                 {
                     Action = action,
                     Source = source,
-                    TargetTile = objGridPos,
+                    TargetTile = targetTile,
                     Values = values
                 });
             }

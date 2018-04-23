@@ -26,7 +26,7 @@ public class ShuffleCounter : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-        _shuffleBar += _mainCharacter.Stats.Shuffle * Time.deltaTime / 10;
+        _shuffleBar += _mainCharacter.Stats.Shuffle * Time.deltaTime / 20;
         _shuffleBar = Mathf.Clamp(_shuffleBar, 0, 1);
         if (_shuffleBar == 1f)
         {

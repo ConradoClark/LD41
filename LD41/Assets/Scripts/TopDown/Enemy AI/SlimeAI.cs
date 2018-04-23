@@ -14,11 +14,16 @@ public class SlimeAI : MonoBehaviour
     private MainCharacter _mainCharacter;
     private Vector2 _currentDirection;
     private Vector2 _currentSpeed;
+    public Enemy _enemyRef;
     // Use this for initialization
     void Start()
     {
         Toolbox.TryGetLevelGrid(out _levelGrid);
         Toolbox.TryGetMainCharacter(out _mainCharacter);
+        if (_enemyRef == null)
+        {
+            _enemyRef = GetComponent<Enemy>();
+        }
     }
 
     // Update is called once per frame
@@ -40,61 +45,68 @@ public class SlimeAI : MonoBehaviour
 
     IEnumerator Loop()
     {
-        while (isActiveAndEnabled)
+        while (gameObject.activeSelf)
         {
-            var dir = Mathf.RoundToInt(Random.Range(0f,1f) * 8f);
-            Vector2 dirVector = Vector2.right;
-            switch (dir)
+            if (!_enemyRef.IsTakingDamage())
             {
-                case (int)Direction.Up:
-                    dirVector = Vector2.up;
-                    break;
-                case (int)Direction.Right:
-                    dirVector = Vector2.right;
-                    break;
-                case (int)Direction.Down:
-                    dirVector = Vector2.down;
-                    break;
-                case (int)Direction.Left:
-                    dirVector = Vector2.left;
-                    break;
-                case 5:
-                    dirVector = Vector2.zero;
-                    break;
-                default:
-                    var dir2 = Mathf.RoundToInt(Random.Range(0f, 1f));
-                    Vector3 testV = _mainCharacter.CharacterTransform.position - this.transform.position;
-                    // horizontal
-                    if (dir2 == 0 || testV.y < 0.1f)
-                    {
-                        dirVector = testV.x < 0 ? Vector2.left : Vector2.right;
-                    }
-                    else
-                    {
-                        dirVector = testV.y < 0 ? Vector2.down : Vector2.up;
-                    }
-                    break;
-            }
+                var dir = Mathf.RoundToInt(Random.Range(0f, 1f) * 8f);
+                Vector2 dirVector = Vector2.right;
+                switch (dir)
+                {
+                    case (int)Direction.Up:
+                        dirVector = Vector2.up;
+                        break;
+                    case (int)Direction.Right:
+                        dirVector = Vector2.right;
+                        break;
+                    case (int)Direction.Down:
+                        dirVector = Vector2.down;
+                        break;
+                    case (int)Direction.Left:
+                        dirVector = Vector2.left;
+                        break;
+                    case 5:
+                        dirVector = Vector2.zero;
+                        break;
+                    default:
+                        var dir2 = Mathf.RoundToInt(Random.Range(0f, 1f));
+                        Vector3 testV = _mainCharacter.CharacterTransform.position - this.transform.position;
+                        // horizontal
+                        if ((dir2 == 0 && testV.x > 0.1f) || testV.y < 0.1f)
+                        {
+                            dirVector = testV.x < 0 ? Vector2.left : Vector2.right;
+                        }
+                        else
+                        {
+                            dirVector = testV.y < 0 ? Vector2.down : Vector2.up;
+                        }
+                        break;
+                }
 
-            _currentDirection = dirVector;
-            _moveCoroutines.Enqueue(++_move);
-            yield return StartCoroutine(Move(dirVector, _move));
+                if (dirVector != Vector2.zero)
+                {
+                    _currentDirection = dirVector;
+                    _moveCoroutines.Enqueue(++_move);
+                    yield return StartCoroutine(Move(dirVector, _move));
+                }
+            }
             yield return new WaitForSeconds(1f);
         }
     }
 
     IEnumerator Move(Vector2 translation, long coroutineId)
-    {
+    {        
         while (_moveCoroutines.Peek() != coroutineId)
         {
             yield return new WaitForEndOfFrame();
         }
 
-        _isMoving = true;
+        _isMoving = true;        
         Vector2 startingPos = this.transform.position;
         Vector2 endingPos = startingPos + translation;
 
         int[] gridEndingPos = _levelGrid.Vector2ToGrid(endingPos);
+
         bool isBlocking = _levelGrid.IsBlocking(gridEndingPos[0], gridEndingPos[1]);
         if (isBlocking)
         {
@@ -103,13 +115,27 @@ public class SlimeAI : MonoBehaviour
 
         float max = isBlocking ? 0.50f : 1f;
         float time = 0f;
+        bool flash = false;
         while (time < max)
         {
+            if (_enemyRef.IsTakingDamage())
+            {
+                _isMoving = false;
+                _moveCoroutines.Dequeue();
+                yield break;
+            }
             var lerp = Mathf.SmoothStep(0, 1, time);
             this.transform.position =
                  Vector2.Lerp(startingPos, endingPos, Mathf.Min(lerp, 1f));
 
-            time += Time.deltaTime;
+            if (!flash && time > max / 3)
+            {
+                _levelGrid.FlashTile(gridEndingPos, 1f, new Color(219f / 255f, 51f / 255f, 51f / 255f));
+
+                flash = true;
+            }
+
+            time += Time.deltaTime / 2;
             yield return new WaitForEndOfFrame();
         }
 

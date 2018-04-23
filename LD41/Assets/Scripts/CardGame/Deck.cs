@@ -29,23 +29,38 @@ public class Deck : MonoBehaviour
         }
 
         // Generate deck, for now
-        for (int i = 0; i < 10; i++)
+        AddCard(Toolbox.Instance.DeckManager.CardDatabase[0]);
+        AddCard(Toolbox.Instance.DeckManager.CardDatabase[0]);
+        AddCard(Toolbox.Instance.DeckManager.CardDatabase[1]);
+        AddCard(Toolbox.Instance.DeckManager.CardDatabase[1]);
+        AddCard(Toolbox.Instance.DeckManager.CardDatabase[2]);
+        AddCard(Toolbox.Instance.DeckManager.CardDatabase[2]);
+        AddCard(Toolbox.Instance.DeckManager.CardDatabase[3]);
+        AddCard(Toolbox.Instance.DeckManager.CardDatabase[3]);
+        AddCard(Toolbox.Instance.DeckManager.CardDatabase[4]);
+        AddCard(Toolbox.Instance.DeckManager.CardDatabase[4]);
+
+        for (int i = 0; i < 5; i++)
         {
-            var ca = Toolbox.Instance.DeckManager.CardDatabase[Random.Range(0, Toolbox.Instance.DeckManager.CardDatabase.Length)];
-            var go = Toolbox.Instance.Pool.Retrieve(ca.PrefabPoolInstance);
-            var card = go.GetComponent<Card>();
-            if (card == null)
-            {
-                card = go.AddComponent<Card>();
-            }
-            card.Instance = go;
-            card.PoolInstance = ca.PrefabPoolInstance;
-            card.CardType = ca.CardType;
-            card.Instance.SetActive(false);
-            _cardPile.Push(card);
+            AddCard(Toolbox.Instance.DeckManager.CardDatabase[Random.Range(0, Toolbox.Instance.DeckManager.CardDatabase.Length)]);
         }
         Shuffle(_cardPile);
         UpdateUI();
+    }
+
+    void AddCard(DeckManager.CardAssociation ca)
+    {
+        var go = Toolbox.Instance.Pool.Retrieve(ca.PrefabPoolInstance);
+        var card = go.GetComponent<Card>();
+        if (card == null)
+        {
+            card = go.AddComponent<Card>();
+        }
+        card.Instance = go;
+        card.PoolInstance = ca.PrefabPoolInstance;
+        card.CardType = ca.CardType;
+        card.Instance.SetActive(false);
+        _cardPile.Push(card);
     }
 
     // Update is called once per frame

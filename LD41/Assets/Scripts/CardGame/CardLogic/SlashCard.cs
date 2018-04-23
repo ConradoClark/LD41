@@ -27,7 +27,8 @@ namespace Assets.Scripts.CardGame.CardLogic
                     Angle(mainCharacter.GetDirection()) - 270 * (mainCharacter.GetDirection().x != 0 ? -1 : 1));
 
                 var realPos = mainCharacter.CharacterTransform.position + (Vector3)mainCharacter.GetDirection();
-                Toolbox.Instance.LevelGrid.FlashTile(Toolbox.Instance.LevelGrid.Vector2ToGrid(realPos), 1f, new Color(219f/255f, 51f / 255f, 51f / 255f));
+                var realPosGrid = Toolbox.Instance.LevelGrid.Vector2ToGrid(realPos);
+                Toolbox.Instance.LevelGrid.FlashTile(realPosGrid, 1f, new Color(219f/255f, 51f / 255f, 51f / 255f));
                 Toolbox.Instance.StartCoroutine(Animate(gameObject, ()=>
                 {
                     gameObject.SetActive(false);
@@ -35,7 +36,7 @@ namespace Assets.Scripts.CardGame.CardLogic
                 }));
 
                 Toolbox.Instance.LevelGrid.TriggerGridEvent(LevelGrid.GridEvents.HeroAttack,
-                    mainCharacter.GridObject, new Dictionary<string, object>()
+                    mainCharacter.GridObject, realPosGrid, new Dictionary<string, object>()
                     {
                         { "Damage", 1 * mainCharacter.Stats.Attack}
                     });
