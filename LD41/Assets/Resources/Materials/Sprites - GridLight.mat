@@ -65,9 +65,9 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _FadeInStripsHorizontal: 0
-    - _FadeInStripsHorizontalProgress: 0
+    - _FadeInStripsHorizontalProgress: 1
     - _FadeInStripsHorizontalReverse: 0
-    - _FadeInStripsHorizontalStrips: 1
+    - _FadeInStripsHorizontalStrips: 4
     - _FadeInStripsVertical: 0
     - _FadeInStripsVerticalProgress: 0
     - _FadeInStripsVerticalReverse: 0
@@ -110,11 +110,11 @@ Material:
     - _LevelsRGamma: 1
     - _LevelsRMaxInput: 255
     - _LevelsRMinInput: 0
-    - _Luminance: 0
+    - _Luminance: 0.45
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
-    - _Opacity: 0.383
+    - _Opacity: 0.5
     - _Parallax: 0.02
     - _Saturation: 1
     - _SmoothnessTextureChannel: 0

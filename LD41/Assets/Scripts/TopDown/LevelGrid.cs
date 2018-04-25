@@ -82,10 +82,18 @@ public class LevelGrid : MonoBehaviour
 
         float time = durationInSeconds;
         spr.material.SetColor("_Colorize", color);
+        spr.material.SetFloat("_Saturation", 0.6f);
         while (time > 0)
         {
-            spr.material.SetFloat("_Opacity", 0.45f + Mathf.Sin(time * 25) * 0.1f);
+            spr.material.SetFloat("_Opacity", Mathf.Min(1 / time * 0.45f, 0.45f) + Mathf.Sin(time * 5) * 0.1f);
             time -= Time.deltaTime;
+            yield return new WaitForEndOfFrame();
+        }
+        while (time < durationInSeconds / 2)
+        {
+            time = time == 0 ? 0.001f : time;
+            spr.material.SetFloat("_Opacity", Mathf.Max((durationInSeconds - time) * 0.45f, 0));
+            time += Time.deltaTime;
             yield return new WaitForEndOfFrame();
         }
         Toolbox.Instance.Pool.Release(GridFlash, obj);
@@ -183,7 +191,7 @@ public class LevelGrid : MonoBehaviour
         {
             return TileDictionary[c].Blocking;
         }) ||
-        _gridObjects.Any(g => g.Blocking && Vector2ToGrid(g.transform.position).SequenceEqual(new[] { x, y }));
+        _gridObjects.Any(g => g.isActiveAndEnabled && g.Blocking && Vector2ToGrid(g.transform.position).SequenceEqual(new[] { x, y }));
     }
 
     public int[] Vector2ToGrid(Vector2 pos)
@@ -225,9 +233,10 @@ public class LevelGrid : MonoBehaviour
         var sourceGridPos = Vector2ToGrid(source.transform.position);
         foreach(var obj in _gridObjects)
         {
+            if (!obj.isActiveAndEnabled) continue;
             var objGridPos = Vector2ToGrid(obj.transform.position);
             if (targetTile.SequenceEqual(objGridPos))
-            {                
+            {
                 OnGridAction.Invoke(this, new GridActionEventArgs()
                 {
                     Action = action,

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.Scripts.Core;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,18 +29,12 @@ namespace Assets.Scripts.CardGame.CardLogic
 
                 var realPos = mainCharacter.CharacterTransform.position + (Vector3)mainCharacter.GetDirection();
                 var realPosGrid = Toolbox.Instance.LevelGrid.Vector2ToGrid(realPos);
-                Toolbox.Instance.LevelGrid.FlashTile(realPosGrid, 1f, new Color(219f/255f, 51f / 255f, 51f / 255f));
-                Toolbox.Instance.StartCoroutine(Animate(gameObject, ()=>
-                {
-                    gameObject.SetActive(false);
-                    Toolbox.Instance.Pool.Release(_poolInstance, gameObject);
-                }));
 
-                Toolbox.Instance.LevelGrid.TriggerGridEvent(LevelGrid.GridEvents.HeroAttack,
-                    mainCharacter.GridObject, realPosGrid, new Dictionary<string, object>()
-                    {
-                        { "Damage", 1 * mainCharacter.Stats.Attack}
-                    });
+                Toolbox.Instance.StartCoroutine(FlashAndAttack(realPosGrid, mainCharacter));
+                Toolbox.Instance.StartCoroutine(Animate(gameObject,()=>
+                {
+                    Toolbox.Instance.Pool.Release(_poolInstance, gameObject);
+                }));                
             }
 
             if (onAfterUse != null)
@@ -47,6 +42,21 @@ namespace Assets.Scripts.CardGame.CardLogic
                 onAfterUse.Invoke(this, new EventArgs());
             }
             yield break;
+        }
+
+        IEnumerator FlashAndAttack(int[] realPosGrid, MainCharacter mainCharacter)
+        {
+            Toolbox.Instance.LevelGrid.FlashTile(realPosGrid, 0.3f, Colors.MidRed);
+            yield return new WaitForSeconds(0.3f);
+            Toolbox.Instance.LevelGrid.FlashTile(realPosGrid, 0.2f, Color.white);
+
+            Toolbox.Instance.LevelGrid.TriggerGridEvent(LevelGrid.GridEvents.HeroAttack,
+                mainCharacter.GridObject, realPosGrid, new Dictionary<string, object>()
+                {
+                        { "Damage", 1 * mainCharacter.Stats.Attack}
+                });
+            yield return new WaitForSeconds(0.2f);
+            Toolbox.Instance.LevelGrid.FlashTile(realPosGrid, 0.2f, Colors.MidRed);            
         }
 
         IEnumerator Animate(GameObject obj, Action onEnd)
@@ -87,6 +97,7 @@ namespace Assets.Scripts.CardGame.CardLogic
             sprRenderer.material.SetFloat("_Saturation", 0);
 
             onEnd();
+
             yield break;
         }
 
