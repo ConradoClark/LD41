@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class CharacterStats : MonoBehaviour {
 
+    public int Health;
     public int Draw;
     public int Attack;
     public int Defense;

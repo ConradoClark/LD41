@@ -10,37 +10,35 @@ namespace Assets.Scripts.CardGame.CardLogic
     public class SlashCard : ICard
     {
         private PoolInstance _poolInstance;
+        private MainCharacter _mainCharacter;
         public SlashCard(PoolInstance poolInstance)
         {
             _poolInstance = poolInstance;
+            Toolbox.TryGetMainCharacter(out _mainCharacter);
         }
 
         public IEnumerator DoLogic(MonoBehaviour unity, EventHandler<EventArgs> onAfterUse)
         {
-            MainCharacter mainCharacter;
-            if (Toolbox.TryGetMainCharacter(out mainCharacter))
+            var gameObject = Toolbox.Instance.Pool.Retrieve(_poolInstance);
+            gameObject.SetActive(true);
+            gameObject.transform.position = _mainCharacter.CharacterTransform.position + (Vector3)_mainCharacter.GetDirection() * 0.5f;
+            gameObject.transform.rotation = Quaternion.Euler(0, 0, 
+                Angle(_mainCharacter.GetDirection()) - 270 * (_mainCharacter.GetDirection().x != 0 ? -1 : 1));
+
+            var realPos = _mainCharacter.CharacterTransform.position + (Vector3)_mainCharacter.GetDirection();
+            var realPosGrid = Toolbox.Instance.LevelGrid.Vector2ToGrid(realPos);
+            Toolbox.Instance.LevelGrid.FlashTile(realPosGrid, 1f, new Color(219f/255f, 51f / 255f, 51f / 255f));
+            Toolbox.Instance.StartCoroutine(Animate(gameObject, ()=>
             {
-                var gameObject = Toolbox.Instance.Pool.Retrieve(_poolInstance);
-                gameObject.SetActive(true);
-                gameObject.transform.position = mainCharacter.CharacterTransform.position + (Vector3)mainCharacter.GetDirection() * 0.5f;
-                gameObject.transform.rotation = Quaternion.Euler(0, 0, 
-                    Angle(mainCharacter.GetDirection()) - 270 * (mainCharacter.GetDirection().x != 0 ? -1 : 1));
+                gameObject.SetActive(false);
+                Toolbox.Instance.Pool.Release(_poolInstance, gameObject);
+            }));
 
-                var realPos = mainCharacter.CharacterTransform.position + (Vector3)mainCharacter.GetDirection();
-                var realPosGrid = Toolbox.Instance.LevelGrid.Vector2ToGrid(realPos);
-                Toolbox.Instance.LevelGrid.FlashTile(realPosGrid, 1f, new Color(219f/255f, 51f / 255f, 51f / 255f));
-                Toolbox.Instance.StartCoroutine(Animate(gameObject, ()=>
+            Toolbox.Instance.LevelGrid.TriggerGridEvent(LevelGrid.GridEvents.HeroAttack,
+                _mainCharacter.GridObject, realPosGrid, new Dictionary<string, object>()
                 {
-                    gameObject.SetActive(false);
-                    Toolbox.Instance.Pool.Release(_poolInstance, gameObject);
-                }));
-
-                Toolbox.Instance.LevelGrid.TriggerGridEvent(LevelGrid.GridEvents.HeroAttack,
-                    mainCharacter.GridObject, realPosGrid, new Dictionary<string, object>()
-                    {
-                        { "Damage", 1 * mainCharacter.Stats.Attack}
-                    });
-            }
+                    { "Damage", 1 * _mainCharacter.Stats.Attack}
+                });
 
             if (onAfterUse != null)
             {
@@ -107,6 +105,11 @@ namespace Assets.Scripts.CardGame.CardLogic
             {
                 return Mathf.Atan2(p_vector2.x, p_vector2.y) * Mathf.Rad2Deg;
             }
+        }
+
+        public bool CanUse()
+        {
+            return !_mainCharacter.IsIncapacitated;
         }
     }
 }
