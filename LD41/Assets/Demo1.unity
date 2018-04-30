@@ -393,7 +393,7 @@ SpriteRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: 7b81901d03748bf4089b64fdab0f0035, type: 2}
+  - {fileID: 2100000, guid: 2bcec76e9df5d64409fa257a8bcd6ab9, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -498,7 +498,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a58d70b601b602d49bbcc7d65c2bebc9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Blocking: 0
+  Blocking: 1
 --- !u!1 &97507456 stripped
 GameObject:
   m_PrefabParentObject: {fileID: 100000, guid: a6a60659abb4d9d4b934feebd3dcc952, type: 2}

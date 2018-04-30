@@ -118,7 +118,7 @@ public class Enemy : MonoBehaviour {
             this.transform.position =
                  Vector2.Lerp(startingPos, endingPos, Mathf.Min(lerp, 1f));
 
-            if (!flash && time > max / 3)
+            if (!flash && !forced && time > max / 3)
             {
                 _levelGrid.FlashTile(gridEndingPos, 0.8f, Colors.MidRed,()=>
                 {

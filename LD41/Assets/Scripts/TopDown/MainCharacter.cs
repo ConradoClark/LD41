@@ -162,7 +162,7 @@ public class MainCharacter : MonoBehaviour
     IEnumerator TakeDamage(int damage)
     {
         _takingDamage = true;
-        GridObject.Blocking = true;
+        //GridObject.Blocking = true;
         IsIncapacitated = true;
         _currentHealth--;
 
@@ -175,7 +175,7 @@ public class MainCharacter : MonoBehaviour
         }
 
         IsIncapacitated = false;
-        GridObject.Blocking = false;
+        //GridObject.Blocking = false;
         _takingDamage = false;
     }
 }
