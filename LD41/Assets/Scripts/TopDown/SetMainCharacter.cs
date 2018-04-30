@@ -8,6 +8,7 @@ public class SetMainCharacter : MonoBehaviour {
     public Transform Transform;
     public CharacterStats Stats;
     public Animator Animator;
+    public SpriteRenderer CharacterSpriteRenderer;
     public GridObject GridObject;
     private TextMeshPro StatsText;
     private MainCharacter _mainCharacter;
@@ -19,6 +20,7 @@ public class SetMainCharacter : MonoBehaviour {
             _mainCharacter.Stats = Stats;
             _mainCharacter.Animator = Animator;
             _mainCharacter.GridObject = GridObject;
+            _mainCharacter.CharacterSpriteRenderer = CharacterSpriteRenderer;
         }
     }
 

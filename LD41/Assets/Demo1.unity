@@ -449,6 +449,7 @@ MonoBehaviour:
   Transform: {fileID: 84780952}
   Stats: {fileID: 84780954}
   Animator: {fileID: 84780955}
+  CharacterSpriteRenderer: {fileID: 84780951}
   GridObject: {fileID: 84780956}
 --- !u!114 &84780954
 MonoBehaviour:
@@ -461,6 +462,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd85db7fbfe08654b9ca576145009391, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Health: 0
   Draw: 1
   Attack: 1
   Defense: 1
@@ -7606,6 +7608,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Health: 2
   SpriteRenderer: {fileID: 1522387349}
+  GridObject: {fileID: 1522387352}
 --- !u!114 &1522387352
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9031,8 +9034,8 @@ GameObject:
   - component: {fileID: 1968061512}
   - component: {fileID: 1968061511}
   - component: {fileID: 1968061510}
-  - component: {fileID: 1968061509}
   - component: {fileID: 1968061508}
+  - component: {fileID: 1968061509}
   m_Layer: 0
   m_Name: Slime
   m_TagString: Untagged
@@ -9090,6 +9093,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Health: 2
   SpriteRenderer: {fileID: 1968061512}
+  GridObject: {fileID: 1968061508}
 --- !u!95 &1968061511
 Animator:
   serializedVersion: 3

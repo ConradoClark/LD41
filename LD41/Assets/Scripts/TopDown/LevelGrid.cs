@@ -76,12 +76,12 @@ public class LevelGrid : MonoBehaviour
 
     }
 
-    public void FlashTile(int[] xy, float durationInSeconds, Color color)
+    public void FlashTile(int[] xy, float durationInSeconds, Color color, Action onFlash = null)
     {
-        StartCoroutine(Flash(xy, durationInSeconds, color));
+        StartCoroutine(Flash(xy, durationInSeconds, color, onFlash));
     }
 
-    private IEnumerator Flash(int[] xy, float durationInSeconds, Color color)
+    private IEnumerator Flash(int[] xy, float durationInSeconds, Color color, Action onFlash)
     {
         var obj = Toolbox.Instance.Pool.Retrieve(GridFlash);
         SpriteRenderer spr = obj.GetComponent<SpriteRenderer>();
@@ -104,6 +104,10 @@ public class LevelGrid : MonoBehaviour
             yield return new WaitForEndOfFrame();
         }
         Toolbox.Instance.Pool.Release(GridFlash, obj);
+        if (onFlash != null)
+        {
+            onFlash();
+        }
     }
 
     public IEnumerator CreateMap()

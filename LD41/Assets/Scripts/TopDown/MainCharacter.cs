@@ -38,11 +38,11 @@ public class MainCharacter : MonoBehaviour
     void HandleDamage(LevelGrid.GridActionEventArgs e)
     {
         if (e.Action == LevelGrid.GridEvents.EnemyAttack && !_takingDamage
-            && e.TargetTile.SequenceEqual(_levelGrid.Vector2ToGrid(transform.position)))
+            && e.TargetTile.SequenceEqual(_levelGrid.Vector2ToGrid(CharacterTransform.position)))
         {
             int damage = e.Values.ContainsKey(LevelGrid.GridValues.Damage) ? (int)e.Values[LevelGrid.GridValues.Damage] : 1;
-            Direction? pushBack = e.Values.ContainsKey(LevelGrid.GridValues.Push) ? 
-                (Direction?)e.Values[LevelGrid.GridValues.Push] : null;
+            Vector2 pushBack = e.Values.ContainsKey(LevelGrid.GridValues.Push) ?
+                (Vector2) e.Values[LevelGrid.GridValues.Push] : Vector2.zero;
             StartCoroutine(TakeDamage(damage));
         }
     }

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Assets.Scripts.Core;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -9,6 +10,7 @@ public class Enemy : MonoBehaviour {
     private int _currentHealth;
     private LevelGrid _levelGrid;
     public SpriteRenderer SpriteRenderer;
+    public GridObject GridObject;
     private bool _takingDamage;
     private bool _isMoving;
     private Queue<long> _moveCoroutines = new Queue<long>();
@@ -118,8 +120,16 @@ public class Enemy : MonoBehaviour {
 
             if (!flash && time > max / 3)
             {
-                _levelGrid.FlashTile(gridEndingPos, 1f, new Color(219f / 255f, 51f / 255f, 51f / 255f));
-
+                _levelGrid.FlashTile(gridEndingPos, 0.8f, Colors.MidRed,()=>
+                {
+                    Toolbox.Instance.LevelGrid.FlashTile(gridEndingPos, 0.2f, Color.white);
+                    Toolbox.Instance.LevelGrid.TriggerGridEvent(LevelGrid.GridEvents.EnemyAttack,
+                        GridObject, gridEndingPos, new Dictionary<string, object>()
+                        {
+                                { "Damage", 1},
+                                { "Push", endingPos-startingPos }
+                        });
+                });
                 flash = true;
             }
 
