@@ -13,6 +13,7 @@ public class Deck : MonoBehaviour
     public bool Drawing { get; private set; }
     public bool Reorganizing { get; private set; }
     private float opSpeed = 0.1f;
+    public SpriteRenderer DeckSprite;
 
     // Use this for initialization
     void Start()
@@ -167,7 +168,7 @@ public class Deck : MonoBehaviour
                 var usedSlot = cardsInSlots.FirstOrDefault(c=>c.CurrentCard == slot.CurrentCard);
                 if (usedSlot!=null)
                 {
-                    cardsInSlots = new Stack<PawSlot>(cardsInSlots.Except(new[] { usedSlot }));
+                    cardsInSlots = new Stack<PawSlot>(cardsInSlots.Except(new[] { usedSlot }).Reverse());
                 }
                 continue;
             }

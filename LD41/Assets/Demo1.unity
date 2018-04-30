@@ -2565,6 +2565,7 @@ GameObject:
   m_Component:
   - component: {fileID: 596720932}
   - component: {fileID: 596720931}
+  - component: {fileID: 596720933}
   m_Layer: 5
   m_Name: CardBack
   m_TagString: Untagged
@@ -2628,6 +2629,18 @@ Transform:
   m_Father: {fileID: 469545650}
   m_RootOrder: 11
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &596720933
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 596720930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68d38c2c4a30c5d42ac76b2cfbec3a24, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DeckSprite: {fileID: 596720931}
 --- !u!1 &597473678
 GameObject:
   m_ObjectHideFlags: 0
@@ -4029,7 +4042,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Order: 5
   Transform: {fileID: 833041334}
-  Unlocked: 0
+  Unlocked: 1
   CurrentCard: {fileID: 0}
   DiscardButton: {fileID: 1496479422}
 --- !u!1 &834678957
@@ -8853,7 +8866,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Order: 6
   Transform: {fileID: 1938979873}
-  Unlocked: 0
+  Unlocked: 1
   CurrentCard: {fileID: 0}
   DiscardButton: {fileID: 1524393584}
 --- !u!1001 &1955206111

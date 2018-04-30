@@ -11,6 +11,7 @@ public class PawSlot : MonoBehaviour {
     public bool Unlocked;
     public Card CurrentCard;
     public DiscardButton DiscardButton;
+    private MainCharacter _mainCharacter;
 
     // Use this for initialization
     void Start() {
@@ -18,6 +19,11 @@ public class PawSlot : MonoBehaviour {
         if (Toolbox.TryGetCardUI(out cardUI))
         {
             cardUI.AddPawSlot(this);
+        }
+
+        if (Toolbox.TryGetMainCharacter(out _mainCharacter))
+        {
+            Unlocked = _mainCharacter.Stats.PawSize >= Order;
         }
 
         Toolbox.Instance.OnPostInit += Instance_OnPostInit;
@@ -50,11 +56,21 @@ public class PawSlot : MonoBehaviour {
         Occupied = true;
         card.Used = false;
         card.Instance.SetActive(true);
-        card.Instance.transform.position = Transform.position;
+        card.Instance.transform.position = _deck.DeckSprite.transform.position;
+        StartCoroutine(DrawCardAnimation(card));
+
         card.OnUsing += Card_OnUsing;
         CurrentCard = card;
         return true;
     }
+
+    IEnumerator DrawCardAnimation(Card card)
+    {      
+        card.Destination = Transform.position;
+        StartCoroutine(card.FadeIn());
+        yield return card.MoveToDestination(speed: 15f, onDestination: () => StartCoroutine(card.Flash(speed: 2f)));
+    }
+
 
     private void Card_OnUsing(object sender, Card.CardEvent e)
     {
@@ -97,7 +113,8 @@ public class PawSlot : MonoBehaviour {
         dest.Occupied = true;
         dest.CurrentCard = source.CurrentCard;
         dest.CurrentCard.OnUsing += dest.Card_OnUsing;
-        dest.CurrentCard.Instance.transform.position = dest.Transform.position;
+        dest.CurrentCard.Destination = dest.Transform.position;
+        dest.CurrentCard.StartCoroutine(dest.CurrentCard.MoveToDestination(damp: false));
         source.CurrentCard = null;
     }
 }
