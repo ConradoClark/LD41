@@ -6,10 +6,9 @@ using UnityEngine;
 public class SlimeAI : MonoBehaviour
 {
 
-    private Queue<long> _moveCoroutines = new Queue<long>();
-    private static long _move = 0;
+
     private bool _looping;
-    private bool _isMoving;
+
     private LevelGrid _levelGrid;
     private MainCharacter _mainCharacter;
     private Vector2 _currentDirection;
@@ -86,74 +85,12 @@ public class SlimeAI : MonoBehaviour
                 if (dirVector != Vector2.zero)
                 {
                     _currentDirection = dirVector;
-                    _moveCoroutines.Enqueue(++_move);
-                    yield return StartCoroutine(Move(dirVector, _move));
+                    yield return StartCoroutine(_enemyRef.Move(dirVector));
                 }
             }
             yield return new WaitForSeconds(1f);
         }
     }
 
-    IEnumerator Move(Vector2 translation, long coroutineId)
-    {        
-        while (_moveCoroutines.Peek() != coroutineId)
-        {
-            yield return new WaitForEndOfFrame();
-        }
-
-        _isMoving = true;        
-        Vector2 startingPos = this.transform.position;
-        Vector2 endingPos = startingPos + translation;
-
-        int[] gridEndingPos = _levelGrid.Vector2ToGrid(endingPos);
-
-        bool isBlocking = _levelGrid.IsBlocking(gridEndingPos[0], gridEndingPos[1]);
-        if (isBlocking)
-        {
-            endingPos = startingPos + (translation / 4);
-        }
-
-        float max = isBlocking ? 0.50f : 1f;
-        float time = 0f;
-        bool flash = false;
-        while (time < max)
-        {
-            if (_enemyRef.IsTakingDamage())
-            {
-                _isMoving = false;
-                _moveCoroutines.Dequeue();
-                yield break;
-            }
-            var lerp = Mathf.SmoothStep(0, 1, time);
-            this.transform.position =
-                 Vector2.Lerp(startingPos, endingPos, Mathf.Min(lerp, 1f));
-
-            if (!flash && time > max / 3)
-            {
-                _levelGrid.FlashTile(gridEndingPos, 1f, new Color(219f / 255f, 51f / 255f, 51f / 255f));
-
-                flash = true;
-            }
-
-            time += Time.deltaTime / 2;
-            yield return new WaitForEndOfFrame();
-        }
-
-        if (isBlocking)
-        {
-            time = 0.5f;
-            while (time < 1f)
-            {
-                var lerp = Mathf.SmoothStep(0, 1, time);
-                this.transform.position =
-                     Vector2.Lerp(endingPos, startingPos, Mathf.Min(lerp, 1f));
-
-                time += Time.deltaTime;
-                yield return new WaitForEndOfFrame();
-            }
-        }
-
-        _isMoving = false;
-        _moveCoroutines.Dequeue();
-    }
+    
 }

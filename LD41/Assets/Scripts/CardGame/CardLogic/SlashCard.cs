@@ -26,16 +26,15 @@ namespace Assets.Scripts.CardGame.CardLogic
             gameObject.transform.rotation = Quaternion.Euler(0, 0, 
                 Angle(_mainCharacter.GetDirection()) - 270 * (_mainCharacter.GetDirection().x != 0 ? -1 : 1));
 
-                var realPos = mainCharacter.CharacterTransform.position + (Vector3)mainCharacter.GetDirection();
-                var realPosGrid = Toolbox.Instance.LevelGrid.Vector2ToGrid(realPos);
+            var realPos = _mainCharacter.CharacterTransform.position + (Vector3)_mainCharacter.GetDirection();
+            var realPosGrid = Toolbox.Instance.LevelGrid.Vector2ToGrid(realPos);
 
-                Toolbox.Instance.StartCoroutine(FlashAndAttack(realPosGrid, mainCharacter));
-                Toolbox.Instance.StartCoroutine(Animate(gameObject,()=>
-                {
-                    Toolbox.Instance.Pool.Release(_poolInstance, gameObject);
-                }));                
-            }
-
+            Toolbox.Instance.StartCoroutine(FlashAndAttack(realPosGrid, _mainCharacter));
+            Toolbox.Instance.StartCoroutine(Animate(gameObject,()=>
+            {
+                Toolbox.Instance.Pool.Release(_poolInstance, gameObject);
+            }));                
+            
             if (onAfterUse != null)
             {
                 onAfterUse.Invoke(this, new EventArgs());
@@ -45,6 +44,7 @@ namespace Assets.Scripts.CardGame.CardLogic
 
         IEnumerator FlashAndAttack(int[] realPosGrid, MainCharacter mainCharacter)
         {
+            var pushDirection = mainCharacter.GetDirection();
             Toolbox.Instance.LevelGrid.FlashTile(realPosGrid, 0.3f, Colors.MidRed);
             yield return new WaitForSeconds(0.3f);
             Toolbox.Instance.LevelGrid.FlashTile(realPosGrid, 0.2f, Color.white);
@@ -52,7 +52,8 @@ namespace Assets.Scripts.CardGame.CardLogic
             Toolbox.Instance.LevelGrid.TriggerGridEvent(LevelGrid.GridEvents.HeroAttack,
                 mainCharacter.GridObject, realPosGrid, new Dictionary<string, object>()
                 {
-                        { "Damage", 1 * mainCharacter.Stats.Attack}
+                        { "Damage", 1 * mainCharacter.Stats.Attack},
+                        { "Push", pushDirection }
                 });
             yield return new WaitForSeconds(0.2f);
             Toolbox.Instance.LevelGrid.FlashTile(realPosGrid, 0.2f, Colors.MidRed);            
