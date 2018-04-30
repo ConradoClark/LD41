@@ -49,7 +49,7 @@ public class SlimeAI : MonoBehaviour
         {
             if (!_enemyRef.IsTakingDamage())
             {
-                var dir = Mathf.RoundToInt(Random.Range(0f, 1f) * 8f);
+                var dir = Mathf.RoundToInt(Random.Range(0f, 1f) * 12f);
                 Vector2 dirVector = Vector2.right;
                 switch (dir)
                 {
