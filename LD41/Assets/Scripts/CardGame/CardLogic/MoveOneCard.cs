@@ -15,6 +15,12 @@ namespace Assets.Scripts.CardGame.CardLogic
         {
             _direction = direction;
         }
+
+        public bool CanUse()
+        {
+            return true;
+        }
+
         public IEnumerator DoLogic(MonoBehaviour unity, EventHandler<EventArgs> onAfterUse)
         {
             MainCharacter mainCharacter;

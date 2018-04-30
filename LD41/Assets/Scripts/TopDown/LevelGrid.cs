@@ -28,7 +28,14 @@ public class LevelGrid : MonoBehaviour
 
     public static class GridEvents
     {
+        public const string EnemyAttack = "EnemyAttack";
         public const string HeroAttack = "HeroAttack";
+    }
+
+    public static class GridValues
+    {
+        public const string Damage = "Damage";
+        public const string Push = "Push";
     }
 
     public ObjectTile[] TileDefinitions;

@@ -59,10 +59,11 @@ public class Card : MonoBehaviour {
     {
         if (Input.GetMouseButtonUp(0))
         {
-            if (!Used && !Toolbox.Instance.Deck.Drawing && !Toolbox.Instance.Deck.Reorganizing)
+            ICard card = CardType.GetAction();
+            if (card.CanUse() && !Used && !Toolbox.Instance.Deck.Drawing && !Toolbox.Instance.Deck.Reorganizing)
             {
                 Used = true;
-                var coroutine = StartCoroutine(CardType.GetAction().DoLogic(this, OnUsed));
+                var coroutine = StartCoroutine(card.DoLogic(this, OnUsed));
 
                 if (OnUsing != null)
                 {

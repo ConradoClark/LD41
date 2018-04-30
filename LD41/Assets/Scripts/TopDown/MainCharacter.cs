@@ -2,24 +2,49 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Assets.Scripts.TopDown;
+using System.Linq;
+using System;
 
 public class MainCharacter : MonoBehaviour
 {
     public CharacterStats Stats;
     public Transform CharacterTransform;
+    public SpriteRenderer CharacterSpriteRenderer;
     public Animator Animator;
-    public GridObject GridObject;
-    private bool IsMoving;
+    public GridObject GridObject;    
     private Queue<long> _moveCoroutines = new Queue<long>();
     private static long _move = 0;
     private LevelGrid _levelGrid;
     private Vector2 _currentSpeed;
     private Vector2 _currentDirection = Vector2.down;
+    private int _currentHealth;
+    private bool _takingDamage;
+    public bool IsMoving { get; private set; }
+    public bool IsIncapacitated { get; private set; }
     
     // Use this for initialization
     void Start()
     {
         Toolbox.TryGetLevelGrid(out _levelGrid);
+        _levelGrid.OnGridAction += _levelGrid_OnGridAction;
+        _currentHealth = Stats.Health;
+    }
+
+    private void _levelGrid_OnGridAction(object sender, LevelGrid.GridActionEventArgs e)
+    {
+        HandleDamage(e);
+    }
+
+    void HandleDamage(LevelGrid.GridActionEventArgs e)
+    {
+        if (e.Action == LevelGrid.GridEvents.EnemyAttack && !_takingDamage
+            && e.TargetTile.SequenceEqual(_levelGrid.Vector2ToGrid(transform.position)))
+        {
+            int damage = e.Values.ContainsKey(LevelGrid.GridValues.Damage) ? (int)e.Values[LevelGrid.GridValues.Damage] : 1;
+            Direction? pushBack = e.Values.ContainsKey(LevelGrid.GridValues.Push) ? 
+                (Direction?)e.Values[LevelGrid.GridValues.Push] : null;
+            StartCoroutine(TakeDamage(damage));
+        }
     }
 
     // Update is called once per frame
@@ -132,5 +157,25 @@ public class MainCharacter : MonoBehaviour
         IsMoving = false;
         Animator.SetBool("walking", false);
         _moveCoroutines.Dequeue();
+    }
+
+    IEnumerator TakeDamage(int damage)
+    {
+        _takingDamage = true;
+        GridObject.Blocking = true;
+        IsIncapacitated = true;
+        _currentHealth--;
+
+        for (int i = 0; i < 5; i++)
+        {
+            CharacterSpriteRenderer.material.SetFloat("_Opacity", 0f);
+            yield return new WaitForSeconds(0.1f);
+            CharacterSpriteRenderer.material.SetFloat("_Opacity", 1f);
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        IsIncapacitated = false;
+        GridObject.Blocking = false;
+        _takingDamage = false;
     }
 }
