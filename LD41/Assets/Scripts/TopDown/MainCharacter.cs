@@ -84,10 +84,10 @@ public class MainCharacter : MonoBehaviour
         }
     }
 
-    public void Move(Direction direction)
+    public IEnumerator Move(Direction direction)
     {
+        yield return null;
         Vector2 dirVector = Vector2.right;
-        Animator.SetInteger("direction", (int)direction);
         switch (direction)
         {
             case (Direction.Right):                
@@ -103,12 +103,11 @@ public class MainCharacter : MonoBehaviour
                 dirVector = Vector2.down;
                 break;
         }
-        _currentDirection = dirVector;
         _moveCoroutines.Enqueue(++_move);
-        StartCoroutine(Move(dirVector, _move));
+        yield return StartCoroutine(Move(dirVector, _move, direction));
     }
 
-    IEnumerator Move(Vector2 translation, long coroutineId)
+    IEnumerator Move(Vector2 translation, long coroutineId, Direction direction)
     {
         while (_moveCoroutines.Peek() != coroutineId)
         {
@@ -120,6 +119,9 @@ public class MainCharacter : MonoBehaviour
         Animator.SetBool("walking", true);
         Vector2 startingPos = CharacterTransform.transform.position;
         Vector2 endingPos = startingPos + translation;
+
+        _currentDirection = translation;
+        Animator.SetInteger("direction", (int)direction);
 
         int[] gridEndingPos = _levelGrid.Vector2ToGrid(endingPos);
         bool isBlocking = _levelGrid.IsBlocking(gridEndingPos[0], gridEndingPos[1]);

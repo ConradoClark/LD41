@@ -14,6 +14,7 @@ public class Deck : MonoBehaviour
     public bool Reorganizing { get; private set; }
     private float opSpeed = 0.1f;
     public SpriteRenderer DeckSprite;
+    private Queue<Card> _useQueue = new Queue<Card>();
 
     // Use this for initialization
     void Start()
@@ -47,6 +48,37 @@ public class Deck : MonoBehaviour
         }
         Shuffle(_cardPile);
         UpdateUI();
+    }
+
+    public bool AddToUsageQueue(Card card, out int queuePosition)
+    {
+        int pos = -1;
+        if (_useQueue.Count > 0)
+        {
+            pos = _useQueue.Last().QueuePosition;
+        }
+        _useQueue.Enqueue(card);
+        queuePosition = pos + 1;
+
+        Debug.Log("Q#:" + string.Join(" / ", _useQueue.Select(c => c.gameObject.ToString()).ToArray()));
+
+        return _useQueue.Count > 1;
+    }
+
+    public void DequeueUsage()
+    {
+        _useQueue.Dequeue();
+    }
+
+    public Card PeekPreviousCard()
+    {
+        if (_useQueue.Count > 1)
+        {
+            var a = _useQueue.Reverse().Skip(1).FirstOrDefault();
+            Debug.Log("PK PREV:" + a.gameObject.ToString());
+            return a;
+        }
+        return null;
     }
 
     void AddCard(DeckManager.CardAssociation ca)
@@ -115,7 +147,6 @@ public class Deck : MonoBehaviour
         while (_discardPile.Count > 0)
         {
             Card card = _discardPile.Pop();
-            card.Reset();
             _cardPile.Push(card);
             UpdateUI();
             if (_discardPile.Count > 0)
@@ -129,8 +160,17 @@ public class Deck : MonoBehaviour
     public IEnumerator ShufflePawIntoCardPile()
     {
         var list = _slots.Where(s => s.Occupied).ToList();
-        foreach (var slot in list)
+
+        while (list.Count > 0)
         {
+            var slot = list[0];
+
+            if (slot.CurrentCard == null || slot.CurrentCard.Used)
+            {
+                list.Remove(slot);
+                continue;
+            }
+
             slot.SendToDeck(slot.CurrentCard, false);
             UpdateUI();
 

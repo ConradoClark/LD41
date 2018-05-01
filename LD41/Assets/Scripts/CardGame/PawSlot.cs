@@ -46,7 +46,7 @@ public class PawSlot : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-        DiscardButton.SlotOpen = Unlocked && Occupied;
+        DiscardButton.SlotOpen = Unlocked && Occupied && !CurrentCard.Used;
     }
 
     public bool DrawCard(Card card)
@@ -54,6 +54,7 @@ public class PawSlot : MonoBehaviour {
         if (Occupied || !Unlocked) return false;
 
         Occupied = true;
+        card.Reset();
         card.Used = false;
         card.Instance.SetActive(true);
         card.Instance.transform.position = _deck.DeckSprite.transform.position;

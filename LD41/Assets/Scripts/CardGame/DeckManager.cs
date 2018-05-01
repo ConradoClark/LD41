@@ -17,6 +17,7 @@ public class DeckManager : MonoBehaviour
     public PoolInstance SlashInstance;
 
     public Dictionary<CardEnum, ICard> CardsLogic;
+    public PoolInstance UsageQueuePoolInstance;
 
     // Use this for initialization
     void Start()

@@ -26,7 +26,7 @@ namespace Assets.Scripts.CardGame.CardLogic
             MainCharacter mainCharacter;
             if (Toolbox.TryGetMainCharacter(out mainCharacter))
             {
-                mainCharacter.Move(_direction);
+                yield return mainCharacter.StartCoroutine(mainCharacter.Move(_direction));
             }
             if (onAfterUse == null) yield break;
             onAfterUse.Invoke(this, new EventArgs());

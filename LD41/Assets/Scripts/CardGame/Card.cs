@@ -19,9 +19,12 @@ public class Card : MonoBehaviour {
     public event EventHandler<EventArgs> OnUsed;
     public bool Used = false;
     private SpriteRenderer _spriteRenderer;
+    public int QueuePosition { get; private set; }
+    private Deck _deck;
 
     // Use this for initialization
     void Start () {
+        Toolbox.TryGetDeck(out _deck);
     }
 
     SpriteRenderer GetSpriteRenderer()
@@ -29,9 +32,6 @@ public class Card : MonoBehaviour {
         return _spriteRenderer ?? (_spriteRenderer = Instance.GetComponent<SpriteRenderer>());
     }
 
-    private void Instance_OnPostInit(object sender, System.EventArgs e)
-    {
-    }
     // Update is called once per frame
     void Update () {
 		
@@ -39,8 +39,17 @@ public class Card : MonoBehaviour {
 
     public void Reset()
     {
+        QueuePosition = 0;
         Used = false;
         ClearEvents();
+    }
+
+    bool QueueUse()
+    {
+        int queuePosition;
+        bool result = _deck.AddToUsageQueue(this, out queuePosition);
+        QueuePosition = queuePosition;
+        return result;
     }
 
     public void ClearEvents()
@@ -67,17 +76,64 @@ public class Card : MonoBehaviour {
         if (Input.GetMouseButtonUp(0))
         {
             ICard card = CardType.GetAction();
-            if (card.CanUse() && !Used && !Toolbox.Instance.Deck.Drawing && !Toolbox.Instance.Deck.Reorganizing)
+            if (card.CanUse() && !Used)
             {
                 Used = true;
-                var coroutine = StartCoroutine(card.DoLogic(this, OnUsed));
 
-                if (OnUsing != null)
+                if (QueueUse())
                 {
-                    OnUsing(this, new CardEvent() { Card = this });
+                    var peek = _deck.PeekPreviousCard();
+                    CardQueueCounter counter = null;
+                    if (QueuePosition > 0)
+                    {
+                        var obj = Toolbox.Instance.Pool.Retrieve(Toolbox.Instance.DeckManager.UsageQueuePoolInstance);
+                        counter = obj.GetComponent<CardQueueCounter>();
+                        counter.Show(Instance.transform, QueuePosition);
+                    }
+
+                    Debug.Log("QUE" + gameObject.ToString());
+                    peek.OnUsed += (args, sender) =>
+                    {
+                        Debug.Log("QUE NEXT" + gameObject.ToString());
+                        Toolbox.Instance.StartCoroutine(DoLogic(card, counter));
+                    };
                 }
+                else
+                {
+                    Debug.Log("QUE" + gameObject.ToString());
+                    Toolbox.Instance.StartCoroutine(DoLogic(card));
+                }               
             }
         }
+    }
+
+    private IEnumerator DoLogic(ICard card, CardQueueCounter counter = null)
+    {
+        if (OnUsing != null)
+        {
+            OnUsing(this, new CardEvent() { Card = this });
+        }
+
+        if (counter != null)
+        {
+            counter.Hide();
+            Toolbox.Instance.Pool.Release(Toolbox.Instance.DeckManager.UsageQueuePoolInstance, counter.gameObject);
+        }
+
+        yield return Toolbox.Instance.StartCoroutine(card.DoLogic(this, null));
+        Debug.Log("DEQ" + gameObject.ToString());
+
+        if (OnUsed != null)
+        {
+            Debug.Log("CALLED USED" + gameObject.ToString());
+            OnUsed(this, new EventArgs());
+        }
+        else
+        {
+            Debug.Log("CALLED WAS NULL!" + gameObject.ToString());
+        }
+
+        _deck.DequeueUsage();
     }
 
     public IEnumerator MoveToDestination(float speed = 5f, bool damp = true, Action onDestination = null)
