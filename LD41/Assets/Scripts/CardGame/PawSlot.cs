@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PawSlot : MonoBehaviour {
+public class PawSlot : MonoBehaviour
+{
 
     public int Order;
     public Transform Transform;
@@ -12,9 +13,11 @@ public class PawSlot : MonoBehaviour {
     public Card CurrentCard;
     public DiscardButton DiscardButton;
     private MainCharacter _mainCharacter;
+    private bool _discarding;
 
     // Use this for initialization
-    void Start() {
+    void Start()
+    {
         CardUI cardUI;
         if (Toolbox.TryGetCardUI(out cardUI))
         {
@@ -36,7 +39,7 @@ public class PawSlot : MonoBehaviour {
     {
         if (CurrentCard == null) return;
         Toolbox.Instance.DiscardCounter.Decrease();
-        Discard(this.CurrentCard);
+        StartCoroutine(Discard(CurrentCard));
     }
 
     private void Instance_OnPostInit(object sender, System.EventArgs e)
@@ -45,28 +48,28 @@ public class PawSlot : MonoBehaviour {
     }
 
     // Update is called once per frame
-    void Update() {
-        DiscardButton.SlotOpen = Unlocked && Occupied && !CurrentCard.Used;
+    void Update()
+    {
+        DiscardButton.SlotOpen = Unlocked && Occupied && CurrentCard != null && !CurrentCard.Used;
     }
 
     public bool DrawCard(Card card)
     {
-        if (Occupied || !Unlocked) return false;
+        if (card.Used || Occupied || !Unlocked || _discarding) return false;
 
         Occupied = true;
         card.Reset();
         card.Used = false;
         card.Instance.SetActive(true);
         card.Instance.transform.position = _deck.DeckSprite.transform.position;
-        StartCoroutine(DrawCardAnimation(card));
-
         card.OnUsing += Card_OnUsing;
         CurrentCard = card;
+        StartCoroutine(DrawCardAnimation(card));
         return true;
     }
 
     IEnumerator DrawCardAnimation(Card card)
-    {      
+    {
         card.Destination = Transform.position;
         StartCoroutine(card.FadeIn());
         yield return card.MoveToDestination(speed: 15f, onDestination: () => StartCoroutine(card.Flash(speed: 2f)));
@@ -75,32 +78,36 @@ public class PawSlot : MonoBehaviour {
 
     private void Card_OnUsing(object sender, Card.CardEvent e)
     {
-        Discard(e.Card);
+        StartCoroutine(Discard(e.Card));
     }
 
-    private void Discard(Card card)
+    private IEnumerator Discard(Card card, bool reorganize = true)
     {
+        _discarding = true;
+        while (!card.FinishedUsing)
+        {
+            yield return false;
+        }
+
+        if (!_discarding) yield break;
+
         CurrentCard = null;
-        Occupied = false;
-        _deck.AddToDiscardPile(card);
-        card.OnUsing -= Card_OnUsing;
-        // Start a coroutine for animations and stuff
+        Occupied = card.Used = false;
+
         Toolbox.Instance.Pool.Release(card.PoolInstance, card.Instance);
-        StartCoroutine(_deck.ReorganizePaw());
+
+        card.Reset();
+        _deck.AddToDiscardPile(card);       
+        _discarding = false;
+        if (reorganize)
+        {
+            yield return StartCoroutine(_deck.ReorganizePaw());
+        }
     }
 
     public void SendToDeck(Card card, bool reorganize = true)
     {
-        CurrentCard = null;
-        Occupied = false;
-        _deck.AddToDrawPile(card);
-        card.OnUsing -= Card_OnUsing;
-        // Start a coroutine for animations and stuff
-        Toolbox.Instance.Pool.Release(card.PoolInstance, card.Instance);
-        if (reorganize)
-        {
-            StartCoroutine(_deck.ReorganizePaw());
-        }
+        Toolbox.Instance.StartCoroutine(Discard(card, reorganize));
     }
 
     public static void Migrate(PawSlot source, PawSlot dest)
@@ -109,13 +116,18 @@ public class PawSlot : MonoBehaviour {
         {
             return;
         }
-        source.CurrentCard.OnUsing -= source.Card_OnUsing;        
+        source.CurrentCard.OnUsing -= source.Card_OnUsing;
         source.Occupied = false;
         dest.Occupied = true;
         dest.CurrentCard = source.CurrentCard;
         dest.CurrentCard.OnUsing += dest.Card_OnUsing;
         dest.CurrentCard.Destination = dest.Transform.position;
-        dest.CurrentCard.StartCoroutine(dest.CurrentCard.MoveToDestination(damp: false));
+        dest.CurrentCard.StartCoroutine(dest.CurrentCard.MoveToDestination(damp: false));            
         source.CurrentCard = null;
+        if (source._discarding)
+        {
+            source._discarding = false;
+            Toolbox.Instance.StartCoroutine(dest.Discard(dest.CurrentCard));
+        }
     }
 }

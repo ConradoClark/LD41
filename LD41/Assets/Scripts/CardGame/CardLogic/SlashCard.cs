@@ -28,13 +28,14 @@ namespace Assets.Scripts.CardGame.CardLogic
 
             var realPos = _mainCharacter.CharacterTransform.position + (Vector3)_mainCharacter.GetDirection();
             var realPosGrid = Toolbox.Instance.LevelGrid.Vector2ToGrid(realPos);
-
-            Toolbox.Instance.StartCoroutine(FlashAndAttack(realPosGrid, _mainCharacter));
+            
             Toolbox.Instance.StartCoroutine(Animate(gameObject,()=>
             {
                 Toolbox.Instance.Pool.Release(_poolInstance, gameObject);
-            }));                
-            
+            }));
+
+            yield return Toolbox.Instance.StartCoroutine(FlashAndAttack(realPosGrid, _mainCharacter));
+
             if (onAfterUse != null)
             {
                 onAfterUse.Invoke(this, new EventArgs());

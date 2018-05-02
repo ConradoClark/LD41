@@ -102,7 +102,7 @@ public class Deck : MonoBehaviour
         // No cards? Shouldn't happen
         if (_discardPile.Count == 0 && _cardPile.Count == 0) return;
 
-        if (!Drawing && _slots.Length > 0 && _slots.Count(s => s.Occupied) <= _stats.Draw)
+        if (!Reorganizing && !Drawing && _slots.Length > 0 && _slots.Count(s => s.Occupied) <= _stats.Draw)
         {
             StartCoroutine(DrawCards());
         }
@@ -116,7 +116,10 @@ public class Deck : MonoBehaviour
 
     IEnumerator DrawCards()
     {
-        Drawing = true;
+        while (Reorganizing || Drawing) yield return new WaitForEndOfFrame();
+        Drawing = (!Drawing && _slots.Length > 0 && _slots.Count(s => s.Occupied) <= _stats.Draw);
+        if (!Drawing) yield break; 
+        
         if (_cardPile.Count == 0)
         {
             yield return StartCoroutine(ShuffleDiscardPileIntoCardPile());
@@ -128,6 +131,7 @@ public class Deck : MonoBehaviour
             {
                 yield return StartCoroutine(ShuffleDiscardPileIntoCardPile());
             }
+            if (slot.Occupied) continue;
             if (slot.DrawCard(_cardPile.Peek()))
             {
                 _cardPile.Pop();
@@ -197,8 +201,8 @@ public class Deck : MonoBehaviour
 
     public IEnumerator ReorganizePaw()
     {
-        Reorganizing = true;
-        while (Drawing) yield return new WaitForEndOfFrame();
+        while (Reorganizing || Drawing) yield return new WaitForEndOfFrame();
+        Reorganizing = true;        
         var cardsInSlots = new Stack<PawSlot>(_slots.Where(s => s.Occupied).OrderByDescending(s=>s.Order).ToList());
         foreach(var slot in _slots.OrderBy(s => s.Order).ToList())
         {

@@ -4,7 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Card : MonoBehaviour {
+public class Card : MonoBehaviour
+{
 
     public class CardEvent : EventArgs
     {
@@ -21,9 +22,19 @@ public class Card : MonoBehaviour {
     private SpriteRenderer _spriteRenderer;
     public int QueuePosition { get; private set; }
     private Deck _deck;
+    private bool _inUse;
+    private bool _waitingForUse;
+    public bool FinishedUsing
+    {
+        get
+        {
+            return !Used || (!_inUse && !_waitingForUse);
+        }
+    }
 
     // Use this for initialization
-    void Start () {
+    void Start()
+    {
         Toolbox.TryGetDeck(out _deck);
     }
 
@@ -33,9 +44,10 @@ public class Card : MonoBehaviour {
     }
 
     // Update is called once per frame
-    void Update () {
-		
-	}
+    void Update()
+    {
+
+    }
 
     public void Reset()
     {
@@ -91,28 +103,35 @@ public class Card : MonoBehaviour {
                         counter.Show(Instance.transform, QueuePosition);
                     }
 
-                    Debug.Log("QUE" + gameObject.ToString());
+                    _waitingForUse = true;
+                    //Debug.Log("QUE" + gameObject.ToString());
                     peek.OnUsed += (args, sender) =>
                     {
-                        Debug.Log("QUE NEXT" + gameObject.ToString());
+                        //Debug.Log("QUE NEXT" + gameObject.ToString());
                         Toolbox.Instance.StartCoroutine(DoLogic(card, counter));
                     };
                 }
                 else
                 {
-                    Debug.Log("QUE" + gameObject.ToString());
+                    //Debug.Log("QUE" + gameObject.ToString());
                     Toolbox.Instance.StartCoroutine(DoLogic(card));
-                }               
+                }
             }
         }
     }
 
     private IEnumerator DoLogic(ICard card, CardQueueCounter counter = null)
     {
+        _inUse = true;
+        _waitingForUse = false;
+
+        Toolbox.Instance.StartCoroutine(AnimateActive());
         if (OnUsing != null)
         {
             OnUsing(this, new CardEvent() { Card = this });
         }
+
+        yield return Toolbox.Instance.StartCoroutine(card.DoLogic(this, null));
 
         if (counter != null)
         {
@@ -120,20 +139,58 @@ public class Card : MonoBehaviour {
             Toolbox.Instance.Pool.Release(Toolbox.Instance.DeckManager.UsageQueuePoolInstance, counter.gameObject);
         }
 
-        yield return Toolbox.Instance.StartCoroutine(card.DoLogic(this, null));
-        Debug.Log("DEQ" + gameObject.ToString());
+        //Debug.Log("DEQ" + gameObject.ToString());
 
         if (OnUsed != null)
         {
-            Debug.Log("CALLED USED" + gameObject.ToString());
+            //Debug.Log("CALLED USED" + gameObject.ToString());
             OnUsed(this, new EventArgs());
         }
-        else
+        /*else
         {
             Debug.Log("CALLED WAS NULL!" + gameObject.ToString());
+        }*/
+        
+        _deck.DequeueUsage();
+        _inUse = false;
+    }
+
+    private IEnumerator AnimateActive()
+    {
+        Toolbox.Instance.StartCoroutine(FlashActive());
+        /* Vector3 localScale = _spriteRenderer.transform.localScale;
+         float time = 0f;
+         while (time < 1f && _inUse)
+         {
+             _spriteRenderer.transform.localScale = Vector3.Lerp(localScale, new Vector3(1.1f, 1.1f, 1f), time * time);
+             time += Time.deltaTime;
+             yield return new WaitForEndOfFrame();
+         }
+
+         while (_inUse)
+         {
+             yield return new WaitForEndOfFrame();
+         }
+
+         _spriteRenderer.transform.localScale = Vector3.one;*/
+        yield break;
+    }
+
+    private IEnumerator FlashActive()
+    {
+        float time = 0f;
+        while (time < 1f && _inUse)
+        {
+            _spriteRenderer.material.SetFloat("_LevelsMaxInput", 255 - Mathf.Sin(time*15f)*80f);
+            time += Time.deltaTime;
+            yield return new WaitForEndOfFrame();
+        }
+        while (_inUse)
+        {
+            yield return new WaitForEndOfFrame();
         }
 
-        _deck.DequeueUsage();
+        _spriteRenderer.material.SetFloat("_LevelsMaxInput", 255);
     }
 
     public IEnumerator MoveToDestination(float speed = 5f, bool damp = true, Action onDestination = null)
@@ -141,7 +198,7 @@ public class Card : MonoBehaviour {
         Vector2 startingPos = Instance.transform.position;
         float dampFactor = damp ? (Destination - (Vector2)Instance.transform.position).magnitude * 2 : 1f;
         float time = 0f;
-        while (time <= 1f || Vector2.Distance(Destination, Instance.transform.position)>0.01f)
+        while (time <= 1f || Vector2.Distance(Destination, Instance.transform.position) > 0.01f)
         {
             Instance.transform.position = Vector2.Lerp(startingPos, Destination, time);
             time += Time.deltaTime / dampFactor * speed;
