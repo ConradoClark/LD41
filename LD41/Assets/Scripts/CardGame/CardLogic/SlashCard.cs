@@ -51,7 +51,7 @@ namespace Assets.Scripts.CardGame.CardLogic
                 mainCharacter.GridObject, realPosGrid, new Dictionary<string, object>()
                 {
                         { "Damage", 1 * mainCharacter.Stats.Attack},
-                        { "Push", pushDirection }
+                        //{ "Push", pushDirection }
                 });
             yield return new WaitForSecondsGear(0.2f);
             Toolbox.Instance.LevelGrid.FlashTile(realPosGrid, 0.2f, Colors.MidRed);            

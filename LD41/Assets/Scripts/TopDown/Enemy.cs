@@ -126,13 +126,16 @@ public class Enemy : MonoBehaviour {
             {
                 _levelGrid.FlashTile(gridEndingPos, 0.8f, Colors.MidRed,()=>
                 {
-                    Toolbox.Instance.LevelGrid.FlashTile(gridEndingPos, 0.2f, Color.white);
-                    Toolbox.Instance.LevelGrid.TriggerGridEvent(LevelGrid.GridEvents.EnemyAttack,
-                        GridObject, gridEndingPos, new Dictionary<string, object>()
-                        {
+                    if (!_takingDamage)
+                    {
+                        Toolbox.Instance.LevelGrid.FlashTile(gridEndingPos, 0.2f, Color.white);
+                        Toolbox.Instance.LevelGrid.TriggerGridEvent(LevelGrid.GridEvents.EnemyAttack,
+                            GridObject, gridEndingPos, new Dictionary<string, object>()
+                            {
                                 { "Damage", 1},
                                 { "Push", endingPos-startingPos }
-                        });
+                            });
+                    }
                 });
                 flash = true;
             }

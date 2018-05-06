@@ -4,6 +4,7 @@ using UnityEngine;
 using Assets.Scripts.TopDown;
 using System.Linq;
 using System;
+using mk = CardGameMakineryConstants;
 
 public class MainCharacter : MonoBehaviour
 {
@@ -11,23 +12,23 @@ public class MainCharacter : MonoBehaviour
     public Transform CharacterTransform;
     public SpriteRenderer CharacterSpriteRenderer;
     public Animator Animator;
-    public GridObject GridObject;    
+    public GridObject GridObject;
     private Queue<long> _moveCoroutines = new Queue<long>();
     private static long _move = 0;
     private LevelGrid _levelGrid;
     private Vector2 _currentSpeed;
     private Vector2 _currentDirection = Vector2.down;
-    private int _currentHealth;
+    private Direction _currentDirectionEnum = Direction.Down;
     private bool _takingDamage;
     public bool IsMoving { get; private set; }
     public bool IsIncapacitated { get; private set; }
+    public bool IsDead { get; private set; }
     
     // Use this for initialization
     void Start()
     {
         Toolbox.TryGetLevelGrid(out _levelGrid);
         _levelGrid.OnGridAction += _levelGrid_OnGridAction;
-        _currentHealth = Stats.Health;
     }
 
     private void _levelGrid_OnGridAction(object sender, LevelGrid.GridActionEventArgs e)
@@ -87,6 +88,7 @@ public class MainCharacter : MonoBehaviour
     public IEnumerator<MakineryGear> Move(Direction direction)
     {
         yield return null;
+        _currentDirectionEnum = direction;
         Vector2 dirVector = Vector2.right;
         switch (direction)
         {
@@ -169,10 +171,19 @@ public class MainCharacter : MonoBehaviour
 
     IEnumerator TakeDamage(int damage)
     {
+        if (IsDead) yield break;
         _takingDamage = true;
         //GridObject.Blocking = true;
         IsIncapacitated = true;
-        _currentHealth--;
+        Stats.CurrentHealth-=6;
+
+        if (Stats.CurrentHealth <= 0)
+        {
+            IsDead = true;
+            Makinery death = new Makinery(mk.Priority.CharacterAnimations);
+            death.AddRoutine(() => Die());
+            Toolbox.Instance.MainMakina.AddMakinery(death);
+        }
 
         for (int i = 0; i < 5; i++)
         {
@@ -185,5 +196,22 @@ public class MainCharacter : MonoBehaviour
         IsIncapacitated = false;
         //GridObject.Blocking = false;
         _takingDamage = false;
+    }
+
+    IEnumerator<MakineryGear> Die()
+    {
+        int dir = (int)_currentDirectionEnum;
+        int dif = (int)Direction.Down - (int)_currentDirectionEnum;
+
+        for (int i = 0; i < 24 + dif; i++)
+        {
+            dir = (dir + 1) % 4;
+            Animator.SetInteger("direction", dir);
+            yield return new WaitForSecondsGear(
+                i < 12 ? 0.05f :
+                (i < 20 ? 0.1f :
+                0.2f)
+                );
+        }
     }
 }

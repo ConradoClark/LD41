@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class CharacterStats : MonoBehaviour {
 
+    public int CurrentHealth;
     public int Health;
     public int Draw;
     public int Attack;
@@ -15,7 +16,6 @@ public class CharacterStats : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		
 	}
 	
 	// Update is called once per frame

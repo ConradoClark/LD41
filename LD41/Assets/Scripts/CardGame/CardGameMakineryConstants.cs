@@ -3,6 +3,7 @@
     public static class Queues
     {
         public static readonly string DeckOperation = "DeckOp";
+        public static readonly string Hearts = "Hearts";
     }
 
     public static class Priority
@@ -16,6 +17,8 @@
         public static readonly int CardPostDiscard = 250;
         public static readonly int CardShuffle = 250;
         public static readonly int CardAnimations = 500;
+        public static readonly int UIAnimations = 1000;
+        public static readonly int CharacterAnimations = 700;
 
     }
 }
