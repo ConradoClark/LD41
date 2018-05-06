@@ -3,10 +3,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using mk = CardGameMakineryConstants;
 
 public class Card : MonoBehaviour
 {
-
     public class CardEvent : EventArgs
     {
         public Card Card { get; set; }
@@ -16,14 +16,13 @@ public class Card : MonoBehaviour
     public CardEnum CardType;
     public PoolInstance PoolInstance;
     public GameObject Instance;
-    public event EventHandler<CardEvent> OnUsing;
-    public event EventHandler<EventArgs> OnUsed;
     public bool Used = false;
     private SpriteRenderer _spriteRenderer;
     public int QueuePosition { get; private set; }
     private Deck _deck;
     private bool _inUse;
     private bool _waitingForUse;
+    private Makinery _mkDiscard = new Makinery(mk.Priority.CardDiscard) { QueueName = mk.Queues.DeckOperation };
     public bool FinishedUsing
     {
         get
@@ -31,15 +30,12 @@ public class Card : MonoBehaviour
             return !Used || (!_inUse && !_waitingForUse);
         }
     }
-    public PawSlot CurrentSlot;
-
-    Makinery discard = new Makinery(50) { QueueName = "DeckOp" };
 
     // Use this for initialization
     void Start()
     {
         Toolbox.TryGetDeck(out _deck);
-        discard.AddRoutine(() => Discard());
+        _mkDiscard.AddRoutine(() => Discard());
     }
 
     SpriteRenderer GetSpriteRenderer()
@@ -47,36 +43,10 @@ public class Card : MonoBehaviour
         return _spriteRenderer ?? (_spriteRenderer = Instance.GetComponent<SpriteRenderer>());
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
     public void Reset()
     {
         QueuePosition = 0;
         Used = false;
-        ClearEvents();
-    }
-
-    bool QueueUse()
-    {
-        int queuePosition;
-        bool result = _deck.AddToUsageQueue(this, out queuePosition);
-        QueuePosition = queuePosition;
-        return result;
-    }
-
-    public void ClearEvents()
-    {
-        if (OnUsed != null)
-        {
-            foreach (var del in OnUsed.GetInvocationList())
-            {
-                OnUsed -= (EventHandler<EventArgs>)del;
-            }
-        }
     }
 
     void OnMouseOver()
@@ -88,7 +58,7 @@ public class Card : MonoBehaviour
             {
                 Used = true;
 
-                Makinery cardUse = new Makinery(50) { QueueName = "CardUse" };
+                Makinery cardUse = new Makinery(mk.Priority.CardUse) { QueueName = "CardUse" };
                 Toolbox.Instance.MainMakina.AddMakinery(cardUse);
 
                 CardQueueCounter counter = null;
@@ -96,7 +66,7 @@ public class Card : MonoBehaviour
                 cardUse.AddRoutine(() => DoLogic(card));
                 cardUse.OnQueued += (sender, args) =>
                 {
-                    QueueUse();
+                    QueuePosition = _deck.AddToUsageQueue(this);
                     if (QueuePosition > 0)
                     {
                         var obj = Toolbox.Instance.Pool.Retrieve(Toolbox.Instance.DeckManager.UsageQueuePoolInstance);
@@ -114,25 +84,6 @@ public class Card : MonoBehaviour
                         Toolbox.Instance.Pool.Release(Toolbox.Instance.DeckManager.UsageQueuePoolInstance, counter.gameObject);
                     }
                 };
-
-                /*if (QueueUse())
-                {
-                    var peek = _deck.PeekPreviousCard();
-                    
-
-                    _waitingForUse = true;
-                    //Debug.Log("QUE" + gameObject.ToString());
-                    peek.OnUsed += (args, sender) =>
-                    {
-                        //Debug.Log("QUE NEXT" + gameObject.ToString());
-                        Toolbox.Instance.StartCoroutine(DoLogic(card, counter));
-                    };
-                }
-                else
-                {
-                    //Debug.Log("QUE" + gameObject.ToString());
-                    Toolbox.Instance.StartCoroutine(DoLogic(card));
-                }*/
             }
         }
     }
@@ -144,7 +95,6 @@ public class Card : MonoBehaviour
             yield return new WaitForFrameCountGear();
         }
 
-        Debug.Log("Discarding " + gameObject.ToString());
         PawSlot slot = _deck.FindCardInPaw(this);
         if (slot != null)
         {
@@ -154,7 +104,7 @@ public class Card : MonoBehaviour
 
         Toolbox.Instance.Pool.Release(PoolInstance, Instance);
 
-        Makinery reorganizeAction = new Makinery(200) { QueueName = "DeckOp" };
+        Makinery reorganizeAction = new Makinery(mk.Priority.PawReorganize) { QueueName = mk.Queues.DeckOperation };
         reorganizeAction.AddRoutine(() => _deck.ReorganizePaw());
         Toolbox.Instance.MainMakina.AddMakinery(reorganizeAction);
 
@@ -169,17 +119,12 @@ public class Card : MonoBehaviour
 
         Toolbox.Instance.StartCoroutine(AnimateActive());
 
-        Makinery cardLogic = new Makinery(50);
-        cardLogic.AddRoutine(() => card.DoLogic(this, null));
+        Makinery cardLogic = new Makinery(mk.Priority.CardUse);
+        cardLogic.AddRoutine(() => card.DoLogic(this));
         yield return new InnerMakinery(cardLogic,Toolbox.Instance.MainMakina);
 
-        if (OnUsed != null)
-        {
-            OnUsed(this, new EventArgs());
-        }
-
         _inUse = false;
-        yield return new InnerMakinery(discard, Toolbox.Instance.MainMakina);
+        yield return new InnerMakinery(_mkDiscard, Toolbox.Instance.MainMakina);
     }
 
     private IEnumerator AnimateActive()
@@ -220,7 +165,30 @@ public class Card : MonoBehaviour
         _spriteRenderer.material.SetFloat("_LevelsMaxInput", 255);
     }
 
-    public IEnumerator MoveToDestination(float speed = 5f, bool damp = true, Action onDestination = null)
+    public void PlayDrawAnimation(Vector3 destination)
+    {
+        Destination = destination;
+        var sprRenderer = GetSpriteRenderer();
+        sprRenderer.material.SetFloat("_Opacity", 0f);
+
+        Makinery fadeIn = new Makinery(mk.Priority.CardAnimations);        
+        fadeIn.AddRoutine(
+            MkLerp.LerpFloat((f) => sprRenderer.material.SetFloat("_Opacity", f),
+            () => sprRenderer.material.GetFloat("_Opacity"),
+            0.50f,
+            () => 1f,
+            MkEasing.EasingFunction.SineEaseIn
+            ));
+
+        Makinery moveAndFlash = new Makinery(mk.Priority.CardAnimations);
+        moveAndFlash.AddRoutine(
+            () => MoveToDestination(speed: 15f),
+            () => Flash(speed: 2f));
+
+        Toolbox.Instance.MainMakina.AddMakinery(fadeIn, moveAndFlash);
+    }
+
+    public IEnumerator<MakineryGear> MoveToDestination(float speed = 5f, bool damp = true)
     {
         Vector2 startingPos = Instance.transform.position;
         float dampFactor = damp ? (Destination - (Vector2)Instance.transform.position).magnitude * 2 : 1f;
@@ -229,37 +197,40 @@ public class Card : MonoBehaviour
         {
             Instance.transform.position = Vector2.Lerp(startingPos, Destination, time);
             time += Time.deltaTime / dampFactor * speed;
-            yield return new WaitForEndOfFrame();
+            yield return new WaitForFrameCountGear();
         }
         Instance.transform.position = Destination;
-        if (onDestination != null)
-        {
-            onDestination();
-        }
     }
 
-    public IEnumerator FadeIn(float speed = 1f)
+    public IEnumerator<MakineryGear> Flash(float speed = 1f)
     {
         var sprRenderer = GetSpriteRenderer();
+
+        Makinery grow = new Makinery(mk.Priority.CardAnimations);
+        grow.AddRoutine(MkLerp.LerpFloat(
+            (f) => sprRenderer.transform.localScale = new Vector3(f,f,1),
+            () => sprRenderer.transform.localScale.x,
+            0.25f,
+            () => 1.1f,
+            MkEasing.EasingFunction.ExponentialEaseInOut
+            ));
+
+        grow.AddRoutine(MkLerp.LerpFloat(
+            (f) => sprRenderer.transform.localScale = new Vector3(f, f, 1),
+            () => sprRenderer.transform.localScale.x,
+            0.25f,
+            () => 1f,
+            MkEasing.EasingFunction.CircularEaseIn
+            ));
+
+        Toolbox.Instance.MainMakina.AddMakinery(grow);
+
         float time = 0f;
         while (time <= 1f)
         {
-            sprRenderer.material.SetFloat("_Opacity", time);
+            sprRenderer.material.SetFloat("_Luminance", time < 0.45f ? time * 0.35f : (1f - time*time));
             time += Time.deltaTime * speed;
-            yield return new WaitForEndOfFrame();
-        }
-        sprRenderer.material.SetFloat("_Opacity", 1f);
-    }
-
-    public IEnumerator Flash(float speed = 1f)
-    {
-        var sprRenderer = GetSpriteRenderer();
-        float time = 0f;
-        while (time <= 1f)
-        {
-            sprRenderer.material.SetFloat("_Luminance", time < 0.45f ? time * 0.35f : (1f - time));
-            time += Time.deltaTime * speed;
-            yield return new WaitForEndOfFrame();
+            yield return new WaitForFrameCountGear();
         }
         sprRenderer.material.SetFloat("_Luminance", 0);
     }

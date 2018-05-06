@@ -10,7 +10,6 @@ public class SetMainCharacter : MonoBehaviour {
     public Animator Animator;
     public SpriteRenderer CharacterSpriteRenderer;
     public GridObject GridObject;
-    private TextMeshPro StatsText;
     private MainCharacter _mainCharacter;
 	// Use this for initialization
 	void Awake () {
@@ -29,7 +28,6 @@ public class SetMainCharacter : MonoBehaviour {
         CardUI cardUI;
         if (Toolbox.TryGetCardUI(out cardUI))
         {
-            StatsText = cardUI.Stats;
             _mainCharacter.UpdateStatsText();
         }
     }

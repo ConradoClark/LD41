@@ -25,6 +25,7 @@ public class CardQueueCounter : MonoBehaviour {
     {
         gameObject.SetActive(true);
         _cardTransform = cardPosition;
+        transform.position = _cardTransform.position + (Vector3)OffsetToCard;
         TextMeshPro.SetText(queuePos.ToString());
     }
 

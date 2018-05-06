@@ -18,7 +18,7 @@ namespace Assets.Scripts.CardGame.CardLogic
             Toolbox.TryGetMainCharacter(out _mainCharacter);
         }
 
-        public IEnumerator<MakineryGear> DoLogic(MonoBehaviour unity, EventHandler<EventArgs> onAfterUse)
+        public IEnumerator<MakineryGear> DoLogic(MonoBehaviour unity)
         {
             var gameObject = Toolbox.Instance.Pool.Retrieve(_poolInstance);
             gameObject.SetActive(true);
@@ -38,12 +38,6 @@ namespace Assets.Scripts.CardGame.CardLogic
             flashAndAttack.AddRoutine(() => FlashAndAttack(realPosGrid, _mainCharacter));
 
             yield return new InnerMakinery(flashAndAttack, Toolbox.Instance.MainMakina);
-
-            if (onAfterUse != null)
-            {
-                onAfterUse.Invoke(this, new EventArgs());
-            }
-            yield break;
         }
 
         IEnumerator<MakineryGear> FlashAndAttack(int[] realPosGrid, MainCharacter mainCharacter)

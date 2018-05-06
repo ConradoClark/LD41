@@ -1,5 +1,5 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
+using mk = CardGameMakineryConstants;
 using UnityEngine;
 
 public class ShuffleCounter : MonoBehaviour {
@@ -51,7 +51,7 @@ public class ShuffleCounter : MonoBehaviour {
                 _canShuffle = false;
                 _shuffleBar = 0;
                 SpriteRendererFullIcon.material.SetFloat("_Saturation", -0.4f);
-                Makinery shuffle = new Makinery(250) { QueueName = "DeckOp" };
+                Makinery shuffle = new Makinery(mk.Priority.CardShuffle) { QueueName = mk.Queues.DeckOperation };
                 shuffle.AddRoutine(() => _deck.ShufflePawIntoCardPile());
                 Toolbox.Instance.MainMakina.AddMakinery(shuffle);
             }

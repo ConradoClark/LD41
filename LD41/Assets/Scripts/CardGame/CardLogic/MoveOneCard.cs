@@ -21,7 +21,7 @@ namespace Assets.Scripts.CardGame.CardLogic
             return true;
         }
 
-        public IEnumerator<MakineryGear> DoLogic(MonoBehaviour unity, EventHandler<EventArgs> onAfterUse)
+        public IEnumerator<MakineryGear> DoLogic(MonoBehaviour unity)
         {
             MainCharacter mainCharacter;
             if (Toolbox.TryGetMainCharacter(out mainCharacter))
@@ -30,8 +30,6 @@ namespace Assets.Scripts.CardGame.CardLogic
                 move.AddRoutine(() => mainCharacter.Move(_direction));
                 yield return new InnerMakinery(move, Toolbox.Instance.MainMakina);
             }
-            if (onAfterUse == null) yield break;
-            onAfterUse.Invoke(this, new EventArgs());
             yield break;
         }
     }

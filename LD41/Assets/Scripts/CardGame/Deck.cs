@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using mk = CardGameMakineryConstants;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -50,7 +50,7 @@ public class Deck : MonoBehaviour
         UpdateUI();
     }
 
-    public bool AddToUsageQueue(Card card, out int queuePosition)
+    public int AddToUsageQueue(Card card)
     {
         int pos = -1;
         if (_useQueue.Count > 0)
@@ -58,9 +58,8 @@ public class Deck : MonoBehaviour
             pos = _useQueue.Last().QueuePosition;
         }
         _useQueue.Enqueue(card);
-        queuePosition = pos + 1;
-
-        return _useQueue.Count > 1;
+        int queuePosition = pos + 1;
+        return queuePosition;
     }
 
     public void DequeueUsage()
@@ -92,7 +91,7 @@ public class Deck : MonoBehaviour
         if (!Reorganizing && !Drawing && _slots.Length > 0 && _slots.Count(s => s.Occupied) <= _stats.Draw)
         {
             Drawing = true;
-            Makinery draw = new Makinery(100) { QueueName = "DeckOp" };
+            Makinery draw = new Makinery(mk.Priority.CardDraw) { QueueName = mk.Queues.DeckOperation };
             draw.AddRoutine(() => DrawCards());
             Toolbox.Instance.MainMakina.AddMakinery(draw);
         }
@@ -111,7 +110,7 @@ public class Deck : MonoBehaviour
         
         if (_cardPile.Count == 0)
         {
-            Makinery shuffleDiscard = new Makinery(100);
+            Makinery shuffleDiscard = new Makinery(mk.Priority.DeckDiscardIntoDraw);
             shuffleDiscard.AddRoutine(() => ShuffleDiscardPileIntoCardPile());
             yield return new InnerMakinery(shuffleDiscard, Toolbox.Instance.MainMakina);
         }
@@ -120,7 +119,7 @@ public class Deck : MonoBehaviour
         {
             if (_cardPile.Count == 0)
             {
-                Makinery shuffleDiscard = new Makinery(100);
+                Makinery shuffleDiscard = new Makinery(mk.Priority.DeckDiscardIntoDraw);
                 shuffleDiscard.AddRoutine(() => ShuffleDiscardPileIntoCardPile());
                 yield return new InnerMakinery(shuffleDiscard, Toolbox.Instance.MainMakina);
             }
@@ -182,7 +181,7 @@ public class Deck : MonoBehaviour
             }
         }
         Shuffle(_cardPile);
-        Makinery reorganize = new Makinery(100) { QueueName = "DeckOp" };
+        Makinery reorganize = new Makinery(mk.Priority.DeckDiscardIntoDraw) { QueueName = mk.Queues.DeckOperation };
         reorganize.AddRoutine(() => ReorganizePaw());
         Toolbox.Instance.MainMakina.AddMakinery(reorganize);
     }

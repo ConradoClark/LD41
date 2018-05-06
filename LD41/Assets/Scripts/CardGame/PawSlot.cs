@@ -1,5 +1,5 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
+using mk = CardGameMakineryConstants;
 using UnityEngine;
 
 public class PawSlot : MonoBehaviour
@@ -12,7 +12,6 @@ public class PawSlot : MonoBehaviour
     public Card CurrentCard;
     public DiscardButton DiscardButton;
     private MainCharacter _mainCharacter;
-    private bool _discarding;
 
     // Use this for initialization
     void Start()
@@ -37,10 +36,9 @@ public class PawSlot : MonoBehaviour
     {
         if (CurrentCard == null) return;
         Toolbox.Instance.DiscardCounter.Decrease();
-        Makinery discard = new Makinery(250) { QueueName = "DeckOp" };
+        Makinery discard = new Makinery(mk.Priority.CardPostDiscard) { QueueName = mk.Queues.DeckOperation };
         discard.AddRoutine(() => CurrentCard.Discard());
         Toolbox.Instance.MainMakina.AddMakinery(discard);
-        _discarding = true;
     }
 
     private void Instance_OnPostInit(object sender, System.EventArgs e)
@@ -64,22 +62,14 @@ public class PawSlot : MonoBehaviour
         card.Instance.SetActive(true);
         card.Instance.transform.position = _deck.DeckSprite.transform.position;
         CurrentCard = card;
-        StartCoroutine(DrawCardAnimation(card));
+        card.PlayDrawAnimation(Transform.position);
         return true;
-    }
-
-    IEnumerator DrawCardAnimation(Card card)
-    {
-        card.Destination = Transform.position;
-        StartCoroutine(card.FadeIn());
-        yield return card.MoveToDestination(speed: 15f, onDestination: () => StartCoroutine(card.Flash(speed: 2f)));
     }
 
     public Makinery SendToDeck(Card card)
     {
-        Makinery discard = new Makinery(250);
+        Makinery discard = new Makinery(mk.Priority.CardPostDiscard);
         discard.AddRoutine(() => card.Discard(false));
-        _discarding = true;
         return discard;
     }
 
