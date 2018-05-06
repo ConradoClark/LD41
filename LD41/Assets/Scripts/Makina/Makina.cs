@@ -33,6 +33,7 @@ public class Makina : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Makinarium == null) return;
         ActiveMakineries.Sort();
         _removeList.Clear();
         foreach (var makineryIndex in ActiveMakineries.ToList())

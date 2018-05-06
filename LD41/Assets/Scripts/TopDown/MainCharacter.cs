@@ -173,7 +173,6 @@ public class MainCharacter : MonoBehaviour
     {
         if (IsDead) yield break;
         _takingDamage = true;
-        //GridObject.Blocking = true;
         IsIncapacitated = true;
         Stats.CurrentHealth-=6;
 
@@ -194,7 +193,6 @@ public class MainCharacter : MonoBehaviour
         }
 
         IsIncapacitated = false;
-        //GridObject.Blocking = false;
         _takingDamage = false;
     }
 
