@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using mk = CardGameMakineryConstants;
 
 public class LevelGrid : MonoBehaviour
 {
@@ -47,6 +48,7 @@ public class LevelGrid : MonoBehaviour
     public Vector2 TileOffset;
     public PoolInstance GridFlash;
     private List<GridObject> _gridObjects = new List<GridObject>();
+    public PoolInstance TemporaryBlock;
 
     // Use this for initialization
     void Start()
@@ -257,5 +259,22 @@ public class LevelGrid : MonoBehaviour
                 });
             }
         }
+    }
+
+    public void CreateTemporaryBlock(int[] xy, float seconds)
+    {
+        Makinery tempBlock = new Makinery(mk.Priority.MapBlock);
+        tempBlock.AddRoutine(() => MkCreateTempBlock(xy, seconds));
+        Toolbox.Instance.MainMakina.AddMakinery(tempBlock);
+    }
+
+    IEnumerator<MakineryGear> MkCreateTempBlock(int[] xy, float seconds)
+    {
+        var obj = Toolbox.Instance.Pool.Retrieve(TemporaryBlock);
+        obj.transform.position = GridToVector2(xy);
+
+        yield return new WaitForSecondsGear(seconds);
+
+        Toolbox.Instance.Pool.Release(TemporaryBlock, obj);
     }
 }

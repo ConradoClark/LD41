@@ -5,8 +5,6 @@ using UnityEngine;
 
 public class SlimeAI : MonoBehaviour
 {
-
-
     private bool _looping;
 
     private LevelGrid _levelGrid;
@@ -69,9 +67,8 @@ public class SlimeAI : MonoBehaviour
                         break;
                     default:
                         var dir2 = Mathf.RoundToInt(Random.Range(0f, 1f));
-                        Vector3 testV = _mainCharacter.CharacterTransform.position - this.transform.position;
-                        // horizontal
-                        if ((dir2 == 0 && testV.x > 0.1f) || testV.y < 0.1f)
+                        Vector3 testV = _mainCharacter.CharacterTransform.position - transform.position;
+                        if (dir2 == 0 && Mathf.Abs(testV.x) > 0.1f)
                         {
                             dirVector = testV.x < 0 ? Vector2.left : Vector2.right;
                         }

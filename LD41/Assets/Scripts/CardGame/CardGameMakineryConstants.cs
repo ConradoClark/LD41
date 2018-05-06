@@ -7,6 +7,7 @@
 
     public static class Priority
     {
+        public static readonly int MapBlock = 10;
         public static readonly int CardDiscard = 50;
         public static readonly int CardUse = 50;
         public static readonly int CardDraw = 100;

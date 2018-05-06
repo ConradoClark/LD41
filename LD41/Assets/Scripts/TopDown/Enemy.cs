@@ -92,7 +92,7 @@ public class Enemy : MonoBehaviour {
         }
 
         _isMoving = true;
-        Vector2 startingPos = this.transform.position;
+        Vector2 startingPos = transform.position;
         Vector2 endingPos = startingPos + translation;
 
         int[] gridEndingPos = _levelGrid.Vector2ToGrid(endingPos);
@@ -101,6 +101,10 @@ public class Enemy : MonoBehaviour {
         if (isBlocking)
         {
             endingPos = startingPos + (translation / 4);
+        }
+        else
+        {
+            _levelGrid.CreateTemporaryBlock(gridEndingPos, 1f);
         }
 
         float max = isBlocking ? 0.50f : 1f;
@@ -115,7 +119,7 @@ public class Enemy : MonoBehaviour {
                 yield break;
             }
             var lerp = Mathf.SmoothStep(0, 1, time);
-            this.transform.position =
+            transform.position =
                  Vector2.Lerp(startingPos, endingPos, Mathf.Min(lerp, 1f));
 
             if (!flash && !forced && time > max / 3)
@@ -143,7 +147,7 @@ public class Enemy : MonoBehaviour {
             while (time < 1f)
             {
                 var lerp = Mathf.SmoothStep(0, 1, time);
-                this.transform.position =
+                transform.position =
                      Vector2.Lerp(endingPos, startingPos, Mathf.Min(lerp, 1f));
 
                 time += Time.deltaTime;

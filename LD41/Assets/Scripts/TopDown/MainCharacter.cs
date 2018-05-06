@@ -131,6 +131,10 @@ public class MainCharacter : MonoBehaviour
         {
             endingPos = startingPos + (translation / 4);
         }
+        else
+        {
+            _levelGrid.CreateTemporaryBlock(gridEndingPos, 1f);
+        }
 
         float max = isBlocking ? 0.50f : 1f;
         float time = 0f;
