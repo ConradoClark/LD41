@@ -15,6 +15,7 @@ public class Toolbox : Singleton<Toolbox>
     public DiscardCounter DiscardCounter { get; set; }
     public DeckManager DeckManager { get; set; }
     public LevelGrid LevelGrid { get; set; }
+    public Makina MainMakina { get; set; }
     public event EventHandler<EventArgs> OnPostInit;
 
     protected Toolbox() { } // guarantee this will be always a singleton only - can't use the constructor!
@@ -26,6 +27,7 @@ public class Toolbox : Singleton<Toolbox>
         Pool = RegisterComponent<PoolManager>();
         DeckManager = RegisterComponent<DeckManager>();
         LevelGrid = RegisterComponent<LevelGrid>();
+        MainMakina = RegisterComponent<Makina>();
         StartCoroutine(PostInit());
     }
 

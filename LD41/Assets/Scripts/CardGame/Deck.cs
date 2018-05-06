@@ -104,7 +104,10 @@ public class Deck : MonoBehaviour
 
         if (!Reorganizing && !Drawing && _slots.Length > 0 && _slots.Count(s => s.Occupied) <= _stats.Draw)
         {
-            StartCoroutine(DrawCards());
+            Drawing = true;
+            Makinery draw = new Makinery(100) { QueueName = "DeckOp" };
+            draw.AddRoutine(() => DrawCards());
+            Toolbox.Instance.MainMakina.AddMakinery(draw);
         }
     }
 
@@ -114,22 +117,25 @@ public class Deck : MonoBehaviour
         _cardUI.DiscardCount.text = _discardPile.Count.ToString().PadLeft(2, '0');
     }
 
-    IEnumerator DrawCards()
+    IEnumerator<MakineryGear> DrawCards()
     {
-        while (Reorganizing || Drawing) yield return new WaitForEndOfFrame();
-        Drawing = (!Drawing && _slots.Length > 0 && _slots.Count(s => s.Occupied) <= _stats.Draw);
+        Drawing = (_slots.Length > 0 && _slots.Count(s => s.Occupied) <= _stats.Draw);
         if (!Drawing) yield break; 
         
         if (_cardPile.Count == 0)
         {
-            yield return StartCoroutine(ShuffleDiscardPileIntoCardPile());
+            Makinery shuffleDiscard = new Makinery(100);
+            shuffleDiscard.AddRoutine(() => ShuffleDiscardPileIntoCardPile());
+            yield return new InnerMakinery(shuffleDiscard, Toolbox.Instance.MainMakina);
         }
 
         foreach (var slot in _slots)
         {
             if (_cardPile.Count == 0)
             {
-                yield return StartCoroutine(ShuffleDiscardPileIntoCardPile());
+                Makinery shuffleDiscard = new Makinery(100);
+                shuffleDiscard.AddRoutine(() => ShuffleDiscardPileIntoCardPile());
+                yield return new InnerMakinery(shuffleDiscard, Toolbox.Instance.MainMakina);
             }
             if (slot.Occupied) continue;
             if (slot.DrawCard(_cardPile.Peek()))
@@ -139,14 +145,14 @@ public class Deck : MonoBehaviour
             UpdateUI();
             if (slot != _slots.Last())
             {
-                yield return new WaitForSeconds(opSpeed);
+                yield return new WaitForSecondsGear(opSpeed);
             }
         }
 
         Drawing = false;
     }
 
-    IEnumerator ShuffleDiscardPileIntoCardPile()
+    IEnumerator<MakineryGear> ShuffleDiscardPileIntoCardPile()
     {
         while (_discardPile.Count > 0)
         {
@@ -155,10 +161,15 @@ public class Deck : MonoBehaviour
             UpdateUI();
             if (_discardPile.Count > 0)
             {
-                yield return new WaitForSeconds(opSpeed);
+                yield return new WaitForSecondsGear(opSpeed);
             }
         }
         Shuffle(_cardPile);
+    }
+
+    public PawSlot FindCardInPaw(Card card)
+    {
+        return _slots.FirstOrDefault(s => s.CurrentCard == card);
     }
 
     public IEnumerator ShufflePawIntoCardPile()
@@ -175,7 +186,7 @@ public class Deck : MonoBehaviour
                 continue;
             }
 
-            slot.SendToDeck(slot.CurrentCard, false);
+            slot.SendToDeck(slot.CurrentCard);
             UpdateUI();
 
             if (slot != list.Last())
@@ -184,7 +195,9 @@ public class Deck : MonoBehaviour
             }
         }
         Shuffle(_cardPile);
-        StartCoroutine(ReorganizePaw());
+        Makinery reorganize = new Makinery(100) { QueueName = "DeckOp" };
+        reorganize.AddRoutine(() => ReorganizePaw());
+        Toolbox.Instance.MainMakina.AddMakinery(reorganize);
     }
 
     public void AddToDiscardPile(Card card)
@@ -199,18 +212,16 @@ public class Deck : MonoBehaviour
         UpdateUI();
     }
 
-    public IEnumerator ReorganizePaw()
+    public IEnumerator<MakineryGear> ReorganizePaw()
     {
-        while (Reorganizing || Drawing) yield return new WaitForEndOfFrame();
-        Reorganizing = true;        
-        var cardsInSlots = new Stack<PawSlot>(_slots.Where(s => s.Occupied).OrderByDescending(s=>s.Order).ToList());
-        foreach(var slot in _slots.OrderBy(s => s.Order).ToList())
+        var cardsInSlots = new Stack<PawSlot>(_slots.Where(s => s.Occupied).OrderByDescending(s => s.Order).ToList());
+        foreach (var slot in _slots.OrderBy(s => s.Order).ToList())
         {
             if (cardsInSlots.Count == 0) break;
             if (slot.Occupied || !slot.Unlocked)
             {
-                var usedSlot = cardsInSlots.FirstOrDefault(c=>c.CurrentCard == slot.CurrentCard);
-                if (usedSlot!=null)
+                var usedSlot = cardsInSlots.FirstOrDefault(c => c.CurrentCard == slot.CurrentCard);
+                if (usedSlot != null)
                 {
                     cardsInSlots = new Stack<PawSlot>(cardsInSlots.Except(new[] { usedSlot }).Reverse());
                 }
@@ -223,11 +234,10 @@ public class Deck : MonoBehaviour
                 UpdateUI();
                 if (slot != _slots.Last())
                 {
-                    yield return new WaitForSeconds(opSpeed);
+                    yield return new WaitForSecondsGear(opSpeed);
                 }
             }
         }
-        Reorganizing = false;
     }
 
     void Shuffle<T>(Stack<T> stack)

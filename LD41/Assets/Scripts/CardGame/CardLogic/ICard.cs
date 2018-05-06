@@ -9,7 +9,7 @@ namespace Assets.Scripts.CardGame.CardLogic
 {
     public interface ICard
     {
-        IEnumerator DoLogic(MonoBehaviour unity, EventHandler<EventArgs> onAfterUse);
+        IEnumerator<MakineryGear> DoLogic(MonoBehaviour unity, EventHandler<EventArgs> onAfterUse);
         bool CanUse();
     }
 }

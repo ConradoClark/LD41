@@ -21,12 +21,14 @@ namespace Assets.Scripts.CardGame.CardLogic
             return true;
         }
 
-        public IEnumerator DoLogic(MonoBehaviour unity, EventHandler<EventArgs> onAfterUse)
+        public IEnumerator<MakineryGear> DoLogic(MonoBehaviour unity, EventHandler<EventArgs> onAfterUse)
         {
             MainCharacter mainCharacter;
             if (Toolbox.TryGetMainCharacter(out mainCharacter))
             {
-                yield return mainCharacter.StartCoroutine(mainCharacter.Move(_direction));
+                Makinery move = new Makinery(50);
+                move.AddRoutine(() => mainCharacter.Move(_direction));
+                yield return new InnerMakinery(move, Toolbox.Instance.MainMakina);
             }
             if (onAfterUse == null) yield break;
             onAfterUse.Invoke(this, new EventArgs());

@@ -84,7 +84,7 @@ public class MainCharacter : MonoBehaviour
         }
     }
 
-    public IEnumerator Move(Direction direction)
+    public IEnumerator<MakineryGear> Move(Direction direction)
     {
         yield return null;
         Vector2 dirVector = Vector2.right;
@@ -104,14 +104,16 @@ public class MainCharacter : MonoBehaviour
                 break;
         }
         _moveCoroutines.Enqueue(++_move);
-        yield return StartCoroutine(Move(dirVector, _move, direction));
+        Makinery move = new Makinery(50);
+        move.AddRoutine(() => Move(dirVector, _move, direction));
+        yield return new InnerMakinery(move, Toolbox.Instance.MainMakina);
     }
 
-    IEnumerator Move(Vector2 translation, long coroutineId, Direction direction)
+    IEnumerator<MakineryGear> Move(Vector2 translation, long coroutineId, Direction direction)
     {
         while (_moveCoroutines.Peek() != coroutineId)
         {
-            yield return new WaitForEndOfFrame();
+            yield return new WaitForFrameCountGear();
         }
 
         if (CharacterTransform == null) yield break;
@@ -139,7 +141,7 @@ public class MainCharacter : MonoBehaviour
                  Vector2.Lerp(startingPos, endingPos, Mathf.Min(lerp, 1f));
 
             time += Time.deltaTime;
-            yield return new WaitForEndOfFrame();
+            yield return new WaitForFrameCountGear();
         }
 
         if (isBlocking)
@@ -152,7 +154,7 @@ public class MainCharacter : MonoBehaviour
                      Vector2.Lerp(endingPos, startingPos, Mathf.Min(lerp, 1f));
 
                 time += Time.deltaTime;
-                yield return new WaitForEndOfFrame();
+                yield return new WaitForFrameCountGear();
             }
         }
 

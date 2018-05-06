@@ -31,6 +31,7 @@ public class Card : MonoBehaviour
             return !Used || (!_inUse && !_waitingForUse);
         }
     }
+    public PawSlot CurrentSlot;
 
     // Use this for initialization
     void Start()
@@ -92,16 +93,37 @@ public class Card : MonoBehaviour
             {
                 Used = true;
 
-                if (QueueUse())
+                Makinery cardUse = new Makinery(50) { QueueName = "CardUse" };
+                Toolbox.Instance.MainMakina.AddMakinery(cardUse);
+
+                CardQueueCounter counter = null;
+
+                cardUse.AddRoutine(() => DoLogic(card));
+                cardUse.OnQueued += (sender, args) =>
                 {
-                    var peek = _deck.PeekPreviousCard();
-                    CardQueueCounter counter = null;
+                    QueuePosition = Toolbox.Instance.MainMakina.GetQueuePosition(cardUse);
+                    Debug.Log(QueuePosition);
                     if (QueuePosition > 0)
                     {
                         var obj = Toolbox.Instance.Pool.Retrieve(Toolbox.Instance.DeckManager.UsageQueuePoolInstance);
                         counter = obj.GetComponent<CardQueueCounter>();
                         counter.Show(Instance.transform, QueuePosition);
                     }
+                };
+
+                cardUse.OnEnd += (sender, args) =>
+                {
+                    if (counter != null)
+                    {
+                        counter.Hide();
+                        Toolbox.Instance.Pool.Release(Toolbox.Instance.DeckManager.UsageQueuePoolInstance, counter.gameObject);
+                    }
+                };
+
+                /*if (QueueUse())
+                {
+                    var peek = _deck.PeekPreviousCard();
+                    
 
                     _waitingForUse = true;
                     //Debug.Log("QUE" + gameObject.ToString());
@@ -115,12 +137,37 @@ public class Card : MonoBehaviour
                 {
                     //Debug.Log("QUE" + gameObject.ToString());
                     Toolbox.Instance.StartCoroutine(DoLogic(card));
-                }
+                }*/
             }
         }
     }
 
-    private IEnumerator DoLogic(ICard card, CardQueueCounter counter = null)
+    public IEnumerator<MakineryGear> Discard(bool reorganize = true)
+    {
+        while (!FinishedUsing)
+        {
+            yield return new WaitForFrameCountGear();
+        }
+
+        Debug.Log("Discarding " + gameObject.ToString());
+        PawSlot slot = _deck.FindCardInPaw(this);
+        if (slot != null)
+        {
+            slot.ReleaseCard();
+        }
+        Used = false;
+
+        Toolbox.Instance.Pool.Release(PoolInstance, Instance);
+
+        Makinery reorganizeAction = new Makinery(200) { QueueName = "DeckOp" };
+        reorganizeAction.AddRoutine(() => _deck.ReorganizePaw());
+        Toolbox.Instance.MainMakina.AddMakinery(reorganizeAction);
+
+        Reset();
+        _deck.AddToDiscardPile(this);
+    }
+
+    private IEnumerator<MakineryGear> DoLogic(ICard card)
     {
         _inUse = true;
         _waitingForUse = false;
@@ -131,13 +178,9 @@ public class Card : MonoBehaviour
             OnUsing(this, new CardEvent() { Card = this });
         }
 
-        yield return Toolbox.Instance.StartCoroutine(card.DoLogic(this, null));
-
-        if (counter != null)
-        {
-            counter.Hide();
-            Toolbox.Instance.Pool.Release(Toolbox.Instance.DeckManager.UsageQueuePoolInstance, counter.gameObject);
-        }
+        Makinery cardLogic = new Makinery(50);
+        cardLogic.AddRoutine(() => card.DoLogic(this, null));
+        yield return new InnerMakinery(cardLogic,Toolbox.Instance.MainMakina);
 
         //Debug.Log("DEQ" + gameObject.ToString());
 
@@ -146,13 +189,12 @@ public class Card : MonoBehaviour
             //Debug.Log("CALLED USED" + gameObject.ToString());
             OnUsed(this, new EventArgs());
         }
-        /*else
-        {
-            Debug.Log("CALLED WAS NULL!" + gameObject.ToString());
-        }*/
-        
-        _deck.DequeueUsage();
+
         _inUse = false;
+
+        Makinery discard = new Makinery(50);
+        discard.AddRoutine(() => Discard());
+        yield return new InnerMakinery(discard, Toolbox.Instance.MainMakina);
     }
 
     private IEnumerator AnimateActive()

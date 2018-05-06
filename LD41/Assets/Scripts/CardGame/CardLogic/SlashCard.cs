@@ -18,7 +18,7 @@ namespace Assets.Scripts.CardGame.CardLogic
             Toolbox.TryGetMainCharacter(out _mainCharacter);
         }
 
-        public IEnumerator DoLogic(MonoBehaviour unity, EventHandler<EventArgs> onAfterUse)
+        public IEnumerator<MakineryGear> DoLogic(MonoBehaviour unity, EventHandler<EventArgs> onAfterUse)
         {
             var gameObject = Toolbox.Instance.Pool.Retrieve(_poolInstance);
             gameObject.SetActive(true);
@@ -34,7 +34,10 @@ namespace Assets.Scripts.CardGame.CardLogic
                 Toolbox.Instance.Pool.Release(_poolInstance, gameObject);
             }));
 
-            yield return Toolbox.Instance.StartCoroutine(FlashAndAttack(realPosGrid, _mainCharacter));
+            Makinery flashAndAttack = new Makinery(50);
+            flashAndAttack.AddRoutine(() => FlashAndAttack(realPosGrid, _mainCharacter));
+
+            yield return new InnerMakinery(flashAndAttack, Toolbox.Instance.MainMakina);
 
             if (onAfterUse != null)
             {
@@ -43,11 +46,11 @@ namespace Assets.Scripts.CardGame.CardLogic
             yield break;
         }
 
-        IEnumerator FlashAndAttack(int[] realPosGrid, MainCharacter mainCharacter)
+        IEnumerator<MakineryGear> FlashAndAttack(int[] realPosGrid, MainCharacter mainCharacter)
         {
             var pushDirection = mainCharacter.GetDirection();
             Toolbox.Instance.LevelGrid.FlashTile(realPosGrid, 0.3f, Colors.MidRed);
-            yield return new WaitForSeconds(0.3f);
+            yield return new WaitForSecondsGear(0.3f);
             Toolbox.Instance.LevelGrid.FlashTile(realPosGrid, 0.2f, Color.white);
 
             Toolbox.Instance.LevelGrid.TriggerGridEvent(LevelGrid.GridEvents.HeroAttack,
@@ -56,7 +59,7 @@ namespace Assets.Scripts.CardGame.CardLogic
                         { "Damage", 1 * mainCharacter.Stats.Attack},
                         { "Push", pushDirection }
                 });
-            yield return new WaitForSeconds(0.2f);
+            yield return new WaitForSecondsGear(0.2f);
             Toolbox.Instance.LevelGrid.FlashTile(realPosGrid, 0.2f, Colors.MidRed);            
         }
 

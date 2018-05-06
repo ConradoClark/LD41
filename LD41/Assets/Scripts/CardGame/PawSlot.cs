@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class PawSlot : MonoBehaviour
 {
-
     public int Order;
     public Transform Transform;
     public bool Occupied { get; private set; }
@@ -32,14 +31,17 @@ public class PawSlot : MonoBehaviour
         Toolbox.Instance.OnPostInit += Instance_OnPostInit;
         DiscardButton.OnButtonPressed += DiscardButton_OnButtonPressed;
         DiscardButton.SlotOpen = Unlocked;
-
     }
 
     private void DiscardButton_OnButtonPressed(object sender, System.EventArgs e)
     {
         if (CurrentCard == null) return;
         Toolbox.Instance.DiscardCounter.Decrease();
-        StartCoroutine(Discard(CurrentCard));
+        Makinery discard = new Makinery(150) { QueueName = "DeckOp" };
+        discard.AddRoutine(() => CurrentCard.Discard());
+        Toolbox.Instance.MainMakina.AddMakinery(discard);
+        _discarding = true;
+
     }
 
     private void Instance_OnPostInit(object sender, System.EventArgs e)
@@ -62,7 +64,6 @@ public class PawSlot : MonoBehaviour
         card.Used = false;
         card.Instance.SetActive(true);
         card.Instance.transform.position = _deck.DeckSprite.transform.position;
-        card.OnUsing += Card_OnUsing;
         CurrentCard = card;
         StartCoroutine(DrawCardAnimation(card));
         return true;
@@ -75,39 +76,18 @@ public class PawSlot : MonoBehaviour
         yield return card.MoveToDestination(speed: 15f, onDestination: () => StartCoroutine(card.Flash(speed: 2f)));
     }
 
-
-    private void Card_OnUsing(object sender, Card.CardEvent e)
+    public void SendToDeck(Card card)
     {
-        StartCoroutine(Discard(e.Card));
-    }
-
-    private IEnumerator Discard(Card card, bool reorganize = true)
-    {
+        Makinery discard = new Makinery(150) { QueueName = "DeckOp" };
+        discard.AddRoutine(() => card.Discard());
         _discarding = true;
-        while (!card.FinishedUsing)
-        {
-            yield return false;
-        }
-
-        if (!_discarding) yield break;
-
-        CurrentCard = null;
-        Occupied = card.Used = false;
-
-        Toolbox.Instance.Pool.Release(card.PoolInstance, card.Instance);
-
-        card.Reset();
-        _deck.AddToDiscardPile(card);       
-        _discarding = false;
-        if (reorganize)
-        {
-            yield return StartCoroutine(_deck.ReorganizePaw());
-        }
+        Toolbox.Instance.MainMakina.AddMakinery(discard);
     }
 
-    public void SendToDeck(Card card, bool reorganize = true)
+    public void ReleaseCard()
     {
-        Toolbox.Instance.StartCoroutine(Discard(card, reorganize));
+        Occupied = false;
+        CurrentCard = null;
     }
 
     public static void Migrate(PawSlot source, PawSlot dest)
@@ -116,18 +96,21 @@ public class PawSlot : MonoBehaviour
         {
             return;
         }
-        source.CurrentCard.OnUsing -= source.Card_OnUsing;
         source.Occupied = false;
         dest.Occupied = true;
         dest.CurrentCard = source.CurrentCard;
-        dest.CurrentCard.OnUsing += dest.Card_OnUsing;
         dest.CurrentCard.Destination = dest.Transform.position;
         dest.CurrentCard.StartCoroutine(dest.CurrentCard.MoveToDestination(damp: false));            
         source.CurrentCard = null;
-        if (source._discarding)
-        {
-            source._discarding = false;
-            Toolbox.Instance.StartCoroutine(dest.Discard(dest.CurrentCard));
-        }
+
+        //if (source._discarding)
+        //{
+        //    source._discarding = false;
+        //    dest._discarding = true;
+        //    Makinery discard = new Makinery(150) { QueueName = "DeckOp" };
+        //    discard.AddRoutine(() => dest.Discard(dest.CurrentCard));
+
+        //    Toolbox.Instance.MainMakina.AddMakinery(discard);
+        //}
     }
 }
