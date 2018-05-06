@@ -37,11 +37,10 @@ public class PawSlot : MonoBehaviour
     {
         if (CurrentCard == null) return;
         Toolbox.Instance.DiscardCounter.Decrease();
-        Makinery discard = new Makinery(150) { QueueName = "DeckOp" };
+        Makinery discard = new Makinery(250) { QueueName = "DeckOp" };
         discard.AddRoutine(() => CurrentCard.Discard());
         Toolbox.Instance.MainMakina.AddMakinery(discard);
         _discarding = true;
-
     }
 
     private void Instance_OnPostInit(object sender, System.EventArgs e)
@@ -57,7 +56,7 @@ public class PawSlot : MonoBehaviour
 
     public bool DrawCard(Card card)
     {
-        if (card.Used || Occupied || !Unlocked || _discarding) return false;
+        if (card.Used || Occupied || !Unlocked) return false;
 
         Occupied = true;
         card.Reset();
@@ -76,12 +75,12 @@ public class PawSlot : MonoBehaviour
         yield return card.MoveToDestination(speed: 15f, onDestination: () => StartCoroutine(card.Flash(speed: 2f)));
     }
 
-    public void SendToDeck(Card card)
+    public Makinery SendToDeck(Card card)
     {
-        Makinery discard = new Makinery(150) { QueueName = "DeckOp" };
-        discard.AddRoutine(() => card.Discard());
+        Makinery discard = new Makinery(250);
+        discard.AddRoutine(() => card.Discard(false));
         _discarding = true;
-        Toolbox.Instance.MainMakina.AddMakinery(discard);
+        return discard;
     }
 
     public void ReleaseCard()
@@ -102,15 +101,5 @@ public class PawSlot : MonoBehaviour
         dest.CurrentCard.Destination = dest.Transform.position;
         dest.CurrentCard.StartCoroutine(dest.CurrentCard.MoveToDestination(damp: false));            
         source.CurrentCard = null;
-
-        //if (source._discarding)
-        //{
-        //    source._discarding = false;
-        //    dest._discarding = true;
-        //    Makinery discard = new Makinery(150) { QueueName = "DeckOp" };
-        //    discard.AddRoutine(() => dest.Discard(dest.CurrentCard));
-
-        //    Toolbox.Instance.MainMakina.AddMakinery(discard);
-        //}
     }
 }

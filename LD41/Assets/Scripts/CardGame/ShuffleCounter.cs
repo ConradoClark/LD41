@@ -51,8 +51,9 @@ public class ShuffleCounter : MonoBehaviour {
                 _canShuffle = false;
                 _shuffleBar = 0;
                 SpriteRendererFullIcon.material.SetFloat("_Saturation", -0.4f);
-                StartCoroutine(_deck.ShufflePawIntoCardPile());
-                // Put the paw on the deck, shuffle, then draw.
+                Makinery shuffle = new Makinery(250) { QueueName = "DeckOp" };
+                shuffle.AddRoutine(() => _deck.ShufflePawIntoCardPile());
+                Toolbox.Instance.MainMakina.AddMakinery(shuffle);
             }
         }
     }

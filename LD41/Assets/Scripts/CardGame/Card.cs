@@ -33,10 +33,13 @@ public class Card : MonoBehaviour
     }
     public PawSlot CurrentSlot;
 
+    Makinery discard = new Makinery(50) { QueueName = "DeckOp" };
+
     // Use this for initialization
     void Start()
     {
         Toolbox.TryGetDeck(out _deck);
+        discard.AddRoutine(() => Discard());
     }
 
     SpriteRenderer GetSpriteRenderer()
@@ -67,14 +70,6 @@ public class Card : MonoBehaviour
 
     public void ClearEvents()
     {
-        if (OnUsing != null)
-        {
-            foreach (var del in OnUsing.GetInvocationList())
-            {
-                OnUsing -= (EventHandler<CardEvent>)del;
-            }
-        }
-
         if (OnUsed != null)
         {
             foreach (var del in OnUsed.GetInvocationList())
@@ -101,8 +96,7 @@ public class Card : MonoBehaviour
                 cardUse.AddRoutine(() => DoLogic(card));
                 cardUse.OnQueued += (sender, args) =>
                 {
-                    QueuePosition = Toolbox.Instance.MainMakina.GetQueuePosition(cardUse);
-                    Debug.Log(QueuePosition);
+                    QueueUse();
                     if (QueuePosition > 0)
                     {
                         var obj = Toolbox.Instance.Pool.Retrieve(Toolbox.Instance.DeckManager.UsageQueuePoolInstance);
@@ -113,6 +107,7 @@ public class Card : MonoBehaviour
 
                 cardUse.OnEnd += (sender, args) =>
                 {
+                    _deck.DequeueUsage();
                     if (counter != null)
                     {
                         counter.Hide();
@@ -173,27 +168,17 @@ public class Card : MonoBehaviour
         _waitingForUse = false;
 
         Toolbox.Instance.StartCoroutine(AnimateActive());
-        if (OnUsing != null)
-        {
-            OnUsing(this, new CardEvent() { Card = this });
-        }
 
         Makinery cardLogic = new Makinery(50);
         cardLogic.AddRoutine(() => card.DoLogic(this, null));
         yield return new InnerMakinery(cardLogic,Toolbox.Instance.MainMakina);
 
-        //Debug.Log("DEQ" + gameObject.ToString());
-
         if (OnUsed != null)
         {
-            //Debug.Log("CALLED USED" + gameObject.ToString());
             OnUsed(this, new EventArgs());
         }
 
         _inUse = false;
-
-        Makinery discard = new Makinery(50);
-        discard.AddRoutine(() => Discard());
         yield return new InnerMakinery(discard, Toolbox.Instance.MainMakina);
     }
 

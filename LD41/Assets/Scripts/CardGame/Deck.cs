@@ -60,25 +60,12 @@ public class Deck : MonoBehaviour
         _useQueue.Enqueue(card);
         queuePosition = pos + 1;
 
-        Debug.Log("Q#:" + string.Join(" / ", _useQueue.Select(c => c.gameObject.ToString()).ToArray()));
-
         return _useQueue.Count > 1;
     }
 
     public void DequeueUsage()
     {
         _useQueue.Dequeue();
-    }
-
-    public Card PeekPreviousCard()
-    {
-        if (_useQueue.Count > 1)
-        {
-            var a = _useQueue.Reverse().Skip(1).FirstOrDefault();
-            Debug.Log("PK PREV:" + a.gameObject.ToString());
-            return a;
-        }
-        return null;
     }
 
     void AddCard(DeckManager.CardAssociation ca)
@@ -172,7 +159,7 @@ public class Deck : MonoBehaviour
         return _slots.FirstOrDefault(s => s.CurrentCard == card);
     }
 
-    public IEnumerator ShufflePawIntoCardPile()
+    public IEnumerator<MakineryGear> ShufflePawIntoCardPile()
     {
         var list = _slots.Where(s => s.Occupied).ToList();
 
@@ -186,12 +173,12 @@ public class Deck : MonoBehaviour
                 continue;
             }
 
-            slot.SendToDeck(slot.CurrentCard);
+            yield return new InnerMakinery(slot.SendToDeck(slot.CurrentCard), Toolbox.Instance.MainMakina);
             UpdateUI();
 
             if (slot != list.Last())
             {
-                yield return new WaitForSeconds(opSpeed);
+                yield return new WaitForSecondsGear(opSpeed);
             }
         }
         Shuffle(_cardPile);
