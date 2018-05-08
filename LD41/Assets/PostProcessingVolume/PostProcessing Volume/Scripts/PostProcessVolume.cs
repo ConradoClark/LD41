@@ -53,6 +53,7 @@ public class PostProcessVolume : MonoBehaviour
     void Start () {
        
         this.transform.localScale = Vector3.one;
+        Toolbox.Instance.MainCameraPPV = this;
     }
 
     void OnValidate()
@@ -65,21 +66,6 @@ public class PostProcessVolume : MonoBehaviour
         {
             var thisVolume = this.GetComponent<PostProcessVolume>();
             receivers.SetValues(ref thisVolume, 1f);
-        }
-    }
-
-
-    void OnTriggerStay(Collider other)
-    {
-
-    }
-
-    void OnTriggerExit(Collider other)
-    {
-        PostProcessVolumeReceiver receivers = other.gameObject.GetComponent<PostProcessVolumeReceiver>();
-        if (receivers != null)
-        {
-            receivers.ResetValues();
         }
     }
 

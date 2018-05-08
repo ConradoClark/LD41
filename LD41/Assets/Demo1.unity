@@ -6145,6 +6145,7 @@ GameObject:
   - component: {fileID: 1247023019}
   - component: {fileID: 1247023020}
   - component: {fileID: 1247023021}
+  - component: {fileID: 1247023022}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -6259,8 +6260,8 @@ MonoBehaviour:
       fxaaSettings:
         preset: 2
       taaSettings:
-        jitterSpread: 0.75
-        sharpen: 0.3
+        jitterSpread: 1
+        sharpen: 0
         stationaryBlending: 0.95
         motionBlending: 0.85
   ambientOcclusion:
@@ -6305,7 +6306,7 @@ MonoBehaviour:
     m_Settings:
       shutterAngle: 270
       sampleCount: 10
-      frameBlending: 0
+      frameBlending: 1
   eyeAdaptation:
     m_Enabled: 0
     m_Settings:
@@ -6327,7 +6328,7 @@ MonoBehaviour:
         intensity: 0.5
         threshold: 1.1
         softKnee: 0.5
-        radius: 4
+        radius: 2.93
         antiFlicker: 0
       lensDirt:
         texture: {fileID: 0}
@@ -6336,7 +6337,7 @@ MonoBehaviour:
     m_Enabled: 0
     m_Settings:
       tonemapping:
-        tonemapper: 2
+        tonemapper: 1
         neutralBlackIn: 0.02
         neutralWhiteIn: 10
         neutralBlackOut: 0
@@ -6351,16 +6352,16 @@ MonoBehaviour:
         saturation: 1
         contrast: 1
       channelMixer:
-        red: {x: 1, y: 0, z: 0}
+        red: {x: 0.68, y: 2, z: -2}
         green: {x: 0, y: 1, z: 0}
         blue: {x: 0, y: 0, z: 1}
         currentEditingChannel: 0
       colorWheels:
         mode: 1
         log:
-          slope: {r: 0, g: 0, b: 0, a: 0}
-          power: {r: 0, g: 0, b: 0, a: 0}
-          offset: {r: 0, g: 0, b: 0, a: 0}
+          slope: {r: 1, g: 1, b: 1, a: 0}
+          power: {r: 1, g: 1, b: 1, a: 0}
+          offset: {r: 1, g: 1, b: 1, a: 0}
         linear:
           lift: {r: 0, g: 0, b: 0, a: 0}
           gamma: {r: 0, g: 0, b: 0, a: 0}
@@ -6384,7 +6385,7 @@ MonoBehaviour:
               tangentMode: 0
             m_PreInfinity: 2
             m_PostInfinity: 2
-            m_RotationOrder: 4
+            m_RotationOrder: 0
           m_Loop: 0
           m_ZeroValue: 0
           m_Range: 1
@@ -6513,24 +6514,24 @@ MonoBehaviour:
     m_Enabled: 0
     m_Settings:
       colored: 1
-      intensity: 0.5
-      size: 1
-      luminanceContribution: 0.8
+      intensity: 0.194
+      size: 0.97
+      luminanceContribution: 1
   vignette:
-    m_Enabled: 0
+    m_Enabled: 1
     m_Settings:
       mode: 0
-      color: {r: 0, g: 0, b: 0, a: 1}
+      color: {r: 1, g: 0, b: 0, a: 1}
       center: {x: 0.5, y: 0.5}
-      intensity: 0.45
-      smoothness: 0.2
+      intensity: 0
+      smoothness: 1
       roundness: 1
       mask: {fileID: 0}
       opacity: 1
-      rounded: 0
+      rounded: 1
   dithering:
     m_Enabled: 0
-  _ResetProfile: {fileID: 0}
+  _ResetProfile: {fileID: 11400000, guid: 1fb191a6ce6ce6849b613dd9e9da8dd9, type: 2}
 --- !u!114 &1247023021
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6542,6 +6543,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9102c490dc9980643b21b8f93b0417e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1247023022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1247023013}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e4d9a5ce9330464ea66dbadd57936b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  MainCamera: {fileID: 1247023017}
 --- !u!1001 &1253522399
 Prefab:
   m_ObjectHideFlags: 0

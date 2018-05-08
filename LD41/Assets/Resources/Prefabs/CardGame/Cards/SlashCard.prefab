@@ -80,7 +80,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HelpCaption: <#db3333> Slash
-  HelpDescription: Attack in your current directoin for <#db3333> 1 </color> damage.
+  HelpDescription: Attack in your current direction for <#db3333> 1 </color> damage.
 --- !u!114 &114016747832526546
 MonoBehaviour:
   m_ObjectHideFlags: 1

@@ -23,7 +23,7 @@ public class MainCharacter : MonoBehaviour
     public bool IsMoving { get; private set; }
     public bool IsIncapacitated { get; private set; }
     public bool IsDead { get; private set; }
-    
+
     // Use this for initialization
     void Start()
     {
@@ -43,7 +43,7 @@ public class MainCharacter : MonoBehaviour
         {
             int damage = e.Values.ContainsKey(LevelGrid.GridValues.Damage) ? (int)e.Values[LevelGrid.GridValues.Damage] : 1;
             Vector2 pushBack = e.Values.ContainsKey(LevelGrid.GridValues.Push) ?
-                (Vector2) e.Values[LevelGrid.GridValues.Push] : Vector2.zero;
+                (Vector2)e.Values[LevelGrid.GridValues.Push] : Vector2.zero;
             StartCoroutine(TakeDamage(damage));
         }
     }
@@ -92,7 +92,7 @@ public class MainCharacter : MonoBehaviour
         Vector2 dirVector = Vector2.right;
         switch (direction)
         {
-            case (Direction.Right):                
+            case (Direction.Right):
                 dirVector = Vector2.right;
                 break;
             case (Direction.Left):
@@ -174,10 +174,11 @@ public class MainCharacter : MonoBehaviour
         if (IsDead) yield break;
         _takingDamage = true;
         IsIncapacitated = true;
-        Stats.CurrentHealth-=6;
+        Stats.CurrentHealth -= 6;
 
         if (Stats.CurrentHealth <= 0)
         {
+            Toolbox.Instance.CardUI.UpdateHelp("<#db3333> (DEAD)", "Oh no! You have lost!");
             IsDead = true;
             Makinery death = new Makinery(mk.Priority.CharacterAnimations);
             death.AddRoutine(() => Die());
@@ -198,6 +199,37 @@ public class MainCharacter : MonoBehaviour
 
     IEnumerator<MakineryGear> Die()
     {
+        var settings = Toolbox.Instance.MainCameraPPV.vignette.settings;
+
+        Makinery vignettePos = new Makinery(mk.Priority.CharacterAnimations);
+        vignettePos.AddRoutine(() => DeathVignette());
+
+        Makinery vignetteIntensity = new Makinery(mk.Priority.CharacterAnimations);
+        vignetteIntensity.AddRoutine(
+            MkLerp.LerpFloat((f) =>
+            {
+                settings = Toolbox.Instance.MainCameraPPV.vignette.settings;
+                settings.intensity = f;
+                Toolbox.Instance.MainCameraPPV.vignette.settings = settings;
+            },
+            () => Toolbox.Instance.MainCameraPPV.vignette.settings.intensity,
+            1.5f,
+            () => 1f,
+            MkEasing.EasingFunction.CubicEaseOut
+        ), MkLerp.LerpFloat((f) =>
+            {
+                settings = Toolbox.Instance.MainCameraPPV.vignette.settings;
+                settings.color.r = f;
+                Toolbox.Instance.MainCameraPPV.vignette.settings = settings;
+            },
+            () => Toolbox.Instance.MainCameraPPV.vignette.settings.color.r,
+            1f,
+            () => 0f,
+            MkEasing.EasingFunction.CubicEaseOut
+        ));
+
+        Toolbox.Instance.MainMakina.AddMakinery(vignettePos, vignetteIntensity);
+
         int dir = (int)_currentDirectionEnum;
         int dif = (int)Direction.Down - (int)_currentDirectionEnum;
 
@@ -211,5 +243,16 @@ public class MainCharacter : MonoBehaviour
                 0.2f)
                 );
         }
+    }
+
+    IEnumerator<MakineryGear> DeathVignette()
+    {
+        var settings = Toolbox.Instance.MainCameraPPV.vignette.settings;
+        var xPos = 0.5f + 0.08f * CharacterTransform.position.x;
+        var yPos = 0.5f + 0.08f * CharacterTransform.position.y * 1.77f;
+        settings.center = new Vector2(xPos, yPos);
+        Debug.Log("center: " + settings.center);
+        Toolbox.Instance.MainCameraPPV.vignette.settings = settings;
+        yield break;
     }
 }

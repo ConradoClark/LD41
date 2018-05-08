@@ -44,7 +44,7 @@ public class ShuffleCounter : MonoBehaviour {
 
     void OnMouseOver()
     {
-        if (Input.GetMouseButtonUp(0))
+        if (!Toolbox.Instance.MainCharacter.IsDead && Input.GetMouseButtonUp(0))
         {
             if (_canShuffle && !Toolbox.Instance.Deck.Drawing && !Toolbox.Instance.Deck.Reorganizing)
             {

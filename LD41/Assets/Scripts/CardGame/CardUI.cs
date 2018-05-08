@@ -43,6 +43,7 @@ public class CardUI : MonoBehaviour {
     
     public void UpdateHelp(string title, string description)
     {
+        if (Toolbox.Instance.MainCharacter.IsDead) return;
         if (OnHelpChanged == null) return;
 
         OnHelpChanged.Invoke(this, new OnHelpChangedEventHandler()

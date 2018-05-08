@@ -51,7 +51,7 @@ public class Card : MonoBehaviour
 
     void OnMouseOver()
     {
-        if (Input.GetMouseButtonUp(0))
+        if (!Toolbox.Instance.MainCharacter.IsDead && Input.GetMouseButtonUp(0))
         {
             ICard card = CardType.GetAction();
             if (card.CanUse() && !Used)

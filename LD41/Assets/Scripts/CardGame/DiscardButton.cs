@@ -27,7 +27,7 @@ public class DiscardButton : MonoBehaviour {
 
     void OnMouseOver()
     {
-        if (Input.GetMouseButtonUp(0))
+        if (!Toolbox.Instance.MainCharacter.IsDead && Input.GetMouseButtonUp(0))
         {
             if (SlotOpen && ButtonActive && OnButtonPressed != null && !Toolbox.Instance.Deck.Drawing && !Toolbox.Instance.Deck.Reorganizing)
             {                
