@@ -5,7 +5,20 @@ using UnityEngine;
 
 public class GridObject : MonoBehaviour {
 
+    [Flags]
+    public enum GridObjectType
+    {
+        Nothing = 1,
+        Floor = 2,
+        Player = 4,
+        Enemy = 8,        
+    }
+
     public bool Blocking;
+    public GridObjectType Type;
+    public int Weight;
+    public bool Active = true;
+
     // Use this for initialization
     void Start () {
         LevelGrid levelGrid;

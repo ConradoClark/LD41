@@ -23,16 +23,16 @@ namespace Assets.Scripts.CardGame.CardLogic
             var gameObject = Toolbox.Instance.Pool.Retrieve(_poolInstance);
             gameObject.SetActive(true);
             gameObject.transform.position = _mainCharacter.CharacterTransform.position + (Vector3)_mainCharacter.GetDirection() * 0.5f;
-            gameObject.transform.rotation = Quaternion.Euler(0, 0, 
+            gameObject.transform.rotation = Quaternion.Euler(0, 0,
                 Angle(_mainCharacter.GetDirection()) - 270 * (_mainCharacter.GetDirection().x != 0 ? -1 : 1));
 
             var realPos = _mainCharacter.CharacterTransform.position + (Vector3)_mainCharacter.GetDirection();
             var realPosGrid = Toolbox.Instance.LevelGrid.Vector2ToGrid(realPos);
-            
-            Toolbox.Instance.StartCoroutine(Animate(gameObject,()=>
-            {
-                Toolbox.Instance.Pool.Release(_poolInstance, gameObject);
-            }));
+
+            Toolbox.Instance.StartCoroutine(Animate(gameObject, () =>
+             {
+                 Toolbox.Instance.Pool.Release(_poolInstance, gameObject);
+             }));
 
             Makinery flashAndAttack = new Makinery(50);
             flashAndAttack.AddRoutine(() => FlashAndAttack(realPosGrid, _mainCharacter));
@@ -43,9 +43,9 @@ namespace Assets.Scripts.CardGame.CardLogic
         IEnumerator<MakineryGear> FlashAndAttack(int[] realPosGrid, MainCharacter mainCharacter)
         {
             var pushDirection = mainCharacter.GetDirection();
-            Toolbox.Instance.LevelGrid.FlashTile(realPosGrid, 0.3f, Colors.MidRed);
+            Toolbox.Instance.LevelGrid.FlashTile(realPosGrid, 1f, 0.3f, Colors.MidRed);
             yield return new WaitForSecondsGear(0.3f);
-            Toolbox.Instance.LevelGrid.FlashTile(realPosGrid, 0.2f, Color.white);
+            Toolbox.Instance.LevelGrid.FlashTile(realPosGrid, 1f, 0.2f, Color.white);
 
             Toolbox.Instance.LevelGrid.TriggerGridEvent(LevelGrid.GridEvents.HeroAttack,
                 mainCharacter.GridObject, realPosGrid, new Dictionary<string, object>()
@@ -54,7 +54,7 @@ namespace Assets.Scripts.CardGame.CardLogic
                         //{ "Push", pushDirection }
                 });
             yield return new WaitForSecondsGear(0.2f);
-            Toolbox.Instance.LevelGrid.FlashTile(realPosGrid, 0.2f, Colors.MidRed);            
+            Toolbox.Instance.LevelGrid.FlashTile(realPosGrid, 1f, 0.2f, Colors.MidRed);
         }
 
         IEnumerator Animate(GameObject obj, Action onEnd)

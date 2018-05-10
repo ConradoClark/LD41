@@ -1,0 +1,78 @@
+{
+    "Tiles": [
+        {
+            "CharCode": "X",
+            "AssetPath": null,
+            "Blocking": true,
+            "LayerOffset": 0
+        },
+        {
+            "CharCode": "0",
+            "AssetPath": "Prefabs/Scenery/BG-Grass_Prefab",
+            "Blocking": false,
+            "LayerOffset": 0
+        },
+        {
+            "CharCode": "1",
+            "AssetPath": "Prefabs/Scenery/BG-HalfGrassHalfDirt_Prefab",
+            "Blocking": false,
+            "LayerOffset": 0
+        },
+        {
+            "CharCode": "2",
+            "AssetPath": "Prefabs/Scenery/BG-SomeGrassMostDirt_Prefab",
+            "Blocking": false,
+            "LayerOffset": 0
+        },
+        {
+            "CharCode": "3",
+            "AssetPath": "Prefabs/Scenery/BG-FullTree_Prefab",
+            "Blocking": false,
+            "Offset": {
+                "x": 0.15,
+                "y": -0.15
+            },
+            "LayerOffset": 3
+        },
+        {
+            "CharCode": "4",
+            "AssetPath": "Prefabs/Scenery/BG-FullTree_Prefab",
+            "Blocking": false,
+            "Offset": {
+                "x": -0.15,
+                "y": 0.15
+            },
+            "LayerOffset": 2
+        },
+        {
+            "CharCode": "5",
+            "AssetPath": "Prefabs/Scenery/BG-FullTree_Prefab",
+            "Blocking": false,
+            "Offset": {
+                "x": 0.25,
+                "y": 0.35
+            },
+            "LayerOffset": 1
+        },
+        {
+            "CharCode": "6",
+            "AssetPath": "Prefabs/Scenery/BG-Fence_Prefab",
+            "Blocking": false,
+            "LayerOffset": 1
+        },
+        {
+            "CharCode": "7",
+            "AssetPath": "Prefabs/Scenery/BG-Fence_Prefab",
+            "Blocking": false,
+            "Offset": {
+                "x": -0.33,
+                "y": -0.25
+            },
+            "LayerOffset": 0
+        },
+        {
+            "CharCode": "A",
+            "AssetPath": "Prefabs/Topdown/Enemies/Enemy-GreenSlime"
+        }
+    ]
+}

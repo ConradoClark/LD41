@@ -7,6 +7,12 @@ public class Pool : MonoBehaviour
 
     void Start()
     {
+        if (pools == null) return;
+        Initialize();
+    }
+
+    public void Initialize()
+    {
         for (int i = 0; i < pools.Length; i++)
         {
             Toolbox.Instance.Pool.AddInstanceToPool(pools[i]);

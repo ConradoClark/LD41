@@ -33,7 +33,7 @@ public class SlimeAI : MonoBehaviour
             1.0f,
             Time.deltaTime);
 
-        if (isActiveAndEnabled && !_looping)
+        if (isActiveAndEnabled && !_looping && _enemyRef.GridObject.Active)
         {
             _looping = true;
             StartCoroutine(Loop());

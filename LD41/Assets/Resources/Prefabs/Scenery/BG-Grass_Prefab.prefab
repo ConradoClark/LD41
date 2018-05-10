@@ -20,6 +20,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4045237057705410}
   - component: {fileID: 212883576703579184}
+  - component: {fileID: 114046467753432320}
   m_Layer: 0
   m_Name: BG-Grass_Prefab
   m_TagString: Untagged
@@ -40,6 +41,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &114046467753432320
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1433437788760346}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a58d70b601b602d49bbcc7d65c2bebc9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Blocking: 0
+  Type: 2
 --- !u!212 &212883576703579184
 SpriteRenderer:
   m_ObjectHideFlags: 1

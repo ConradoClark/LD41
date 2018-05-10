@@ -124,11 +124,11 @@ public class Enemy : MonoBehaviour {
 
             if (!flash && !forced && time > max / 3)
             {
-                _levelGrid.FlashTile(gridEndingPos, 0.8f, Colors.MidRed,()=>
+                _levelGrid.FlashTile(gridEndingPos, 1f, 0.8f, Colors.MidRed, ()=>
                 {
                     if (!_takingDamage)
                     {
-                        Toolbox.Instance.LevelGrid.FlashTile(gridEndingPos, 0.2f, Color.white);
+                        Toolbox.Instance.LevelGrid.FlashTile(gridEndingPos, 1f, 0.2f, Color.white);
                         Toolbox.Instance.LevelGrid.TriggerGridEvent(LevelGrid.GridEvents.EnemyAttack,
                             GridObject, gridEndingPos, new Dictionary<string, object>()
                             {

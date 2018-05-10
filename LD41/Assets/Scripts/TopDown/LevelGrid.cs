@@ -27,8 +27,15 @@ public class LevelGrid : MonoBehaviour
         public int LayerOffset;
     }
 
+    public class GridObjectReference
+    {
+        public GameObject Object;
+        public ObjectTile Tile;
+    }
+
     public static class GridEvents
     {
+        public const string CrushAttack = "CrushAttack";
         public const string EnemyAttack = "EnemyAttack";
         public const string HeroAttack = "HeroAttack";
     }
@@ -39,80 +46,145 @@ public class LevelGrid : MonoBehaviour
         public const string Push = "Push";
     }
 
-    public ObjectTile[] TileDefinitions;
+    // Public Properties
+    public bool Initialized { get; private set; }
+    public string CurrentGoal { get; private set; }
+    public string CurrentGoalProgress { get; private set; }
+    public int CompletedGoals { get; private set; }
+    // Public Fields
+    public Dictionary<GoalEnum, IGoal> PossibleGoals;
     public Dictionary<char, ObjectTile> TileDictionary;
-    private const int _rows = 7;
-    private const int _columns = 7;
     public string[][] Map = new string[_rows][];
+    // Public Parameters
     public float TileSize;
     public Vector2 TileOffset;
     public PoolInstance GridFlash;
-    private List<GridObject> _gridObjects = new List<GridObject>();
     public PoolInstance TemporaryBlock;
+    // Private Fields
+    private List<GridObject> _gridObjects = new List<GridObject>();
+    private Goal[] _currentGoals;
+    private GameObject _sceneryPool;
+
+    // Constants 
+    private const int _rows = 7;
+    private const int _columns = 7;
+
+    private void Awake()
+    {
+        PossibleGoals = new Dictionary<GoalEnum, IGoal>()
+        {
+            { GoalEnum.DefeatAllEnemies, new DefeatAllEnemies(this) }
+        };
+    }
 
     // Use this for initialization
     void Start()
     {
-        Map[0] = new string[_columns] { "X1|", "X1|", "X1|", "X1|34", "X1|", "X1|", "X1|" };
-        Map[1] = new string[_columns] { "X27/(", "X16", "X16", "X16", "X16", "X16", @"X2&7\" };
-        Map[2] = new string[_columns] { "X1&[6[>", "0", "0", "0", "0", "0", "X1|[6[|<" };
-        Map[3] = new string[_columns] { "X1&[6[>", "0", "0", "0", "0", "0", "X1|[6[|<" };
-        Map[4] = new string[_columns] { "X1&[6[>", "0", "0", "0", "0", "0", "X1|[6[|<" };
-        Map[5] = new string[_columns] { "X1&[6[>", "0", "0", "0", "0", "0", "X1|[6[|<" };
-        Map[6] = new string[_columns] { @"X2|7\()&>", "X1|6|", "X1|6|", "X1|36|", "X1|6|", "X1|6|", @"X2|[7/)" };
-        //Map[0] = new string[7] { "7", "7", "7", "7", "7", "7", "7" };
-        //Map[1] = new string[7] { "6", "5", "5", "5", "5", "5", "6&" };
-        //Map[2] = new string[7] { "5[", "1", "1", "1", "1", "1", "5&[" };
-        //Map[3] = new string[7] { "5[", "1", "1D", "1", "1", "1", "5&[" };
-        //Map[4] = new string[7] { "5[", "1", "1", "1", "1", "1", "1Z" };
-        //Map[5] = new string[7] { "5[", "1", "1", "1", "1", "1", "0" };
-        //Map[6] = new string[7] { "6|", "0", "0", "0", "0", "0", "6&|" };
-
-        TileDictionary = TileDefinitions.ToDictionary(k => k.CharCode, k => k);
-        StartCoroutine(CreateMap());
+        LoadLevel("Levels/Tilesets/Forest1", "Levels/World1/1");
     }
 
-    // Update is called once per frame
-    void Update()
+    public void LoadLevel(string tilesetAsset, string levelAsset)
     {
-
+        Makinery loadLevel = new Makinery(1);
+        loadLevel.AddRoutine(
+            () => MkLoadLevel("Levels/Tilesets/Forest1", "Levels/World1/1"),
+            () => MkCreateMap(),
+            () => MkLoadGoals());
+        Toolbox.Instance.MainMakina.AddMakinery(loadLevel);
     }
 
-    public void FlashTile(int[] xy, float durationInSeconds, Color color, Action onFlash = null)
+    private IEnumerator<MakineryGear> MkLoadLevel(string tilesetAsset, string levelAsset)
     {
-        StartCoroutine(Flash(xy, durationInSeconds, color, onFlash));
+        Initialized = false;
+        ResourceRequest tilesetResource = Resources.LoadAsync<TextAsset>(tilesetAsset);
+        ResourceRequest levelResource = Resources.LoadAsync<TextAsset>(levelAsset);
+
+        // Load resources async
+        while (!tilesetResource.isDone || !levelResource.isDone)
+        {
+            yield return new WaitForFrameCountGear();
+        }
+
+        // Serialization
+        TextAsset tilesetText = (TextAsset)tilesetResource.asset;
+        TextAsset levelText = (TextAsset)levelResource.asset;
+
+        TilesetJson tileset = JsonUtility.FromJson<TilesetJson>(tilesetText.text);
+        LevelJson level = JsonUtility.FromJson<LevelJson>(levelText.text);
+
+        // Setting goals
+        _currentGoals = level.Goals.Select(g =>
+        {
+            GoalEnum ge = (GoalEnum)Enum.Parse(typeof(GoalEnum), g.Goal);
+            return new Goal()
+            {
+                Objective = ge,
+                GoalLogic = PossibleGoals[ge],
+                Spawn = g.Spawn.Select(a => a.Array).ToArray()
+            };
+        }).ToArray();
+
+        // Cleanup
+        if (_sceneryPool == null)
+        {
+            _sceneryPool = new GameObject("sceneryPool");
+
+        }
+        Pool pool = _sceneryPool.transform.GetOrAddComponent<Pool>();
+        if (pool.pools != null)
+        {
+            foreach (var p in pool.pools)
+            {
+                Destroy(p.gameObject);
+            }
+        }
+
+        // Object pool creation
+        Dictionary<string, ResourceRequest> resources = new Dictionary<string, ResourceRequest>();
+        Dictionary<string, PoolInstance> poolInstances = new Dictionary<string, PoolInstance>();
+
+        foreach (var path in tileset.Tiles.Select(a => a.AssetPath).Distinct())
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                continue;
+            }
+            resources.Add(path, Resources.LoadAsync<GameObject>(path));
+        }
+
+        while (resources.Any(r => !r.Value.isDone))
+        {
+            yield return new WaitForFrameCountGear();
+        }
+
+        int i = 1;
+        foreach (var resource in resources)
+        {
+            GameObject poolInstance = new GameObject("poolInstance#" + i);
+            poolInstance.transform.SetParent(pool.transform);
+            PoolInstance instance = poolInstance.AddComponent<PoolInstance>();
+            instance.objectType = (GameObject)resource.Value.asset;
+            instance.count = 20;
+            poolInstances[resource.Key] = instance;
+            i++;
+        }
+
+        pool.pools = poolInstances.Values.ToArray();
+        pool.Initialize(); // late initialize
+
+        Map = level.Scenery.Select(s => s.Array.ToArray()).ToArray();
+        TileDictionary = tileset.Tiles.ToDictionary(t => t.CharCode.FirstOrDefault(), t => new ObjectTile()
+        {
+            CharCode = t.CharCode.FirstOrDefault(),
+            PoolInstance = !string.IsNullOrEmpty(t.AssetPath) ? poolInstances[t.AssetPath] : null,
+            Blocking = t.Blocking,
+            Offset = t.Offset,
+            LayerOffset = t.LayerOffset,
+        });
+        Initialized = true;
     }
 
-    private IEnumerator Flash(int[] xy, float durationInSeconds, Color color, Action onFlash)
-    {
-        var obj = Toolbox.Instance.Pool.Retrieve(GridFlash);
-        SpriteRenderer spr = obj.GetComponent<SpriteRenderer>();
-        obj.transform.position = GridToVector2(xy);
-
-        float time = durationInSeconds;
-        spr.material.SetColor("_Colorize", color);
-        spr.material.SetFloat("_Saturation", 0.6f);
-        while (time > 0)
-        {
-            spr.material.SetFloat("_Opacity", Mathf.Min(1 / time * 0.45f, 0.45f) + Mathf.Sin(time * 5) * 0.1f);
-            time -= Time.deltaTime;
-            yield return new WaitForEndOfFrame();
-        }
-        while (time < durationInSeconds / 2)
-        {
-            time = time == 0 ? 0.001f : time;
-            spr.material.SetFloat("_Opacity", Mathf.Max((durationInSeconds - time) * 0.45f, 0));
-            time += Time.deltaTime;
-            yield return new WaitForEndOfFrame();
-        }
-        Toolbox.Instance.Pool.Release(GridFlash, obj);
-        if (onFlash != null)
-        {
-            onFlash();
-        }
-    }
-
-    public IEnumerator CreateMap()
+    private IEnumerator<MakineryGear> MkCreateMap()
     {
         for (int y = 0; y < Map.Length; y++)
         {
@@ -124,24 +196,105 @@ public class LevelGrid : MonoBehaviour
                 {
                     if (!TryProcessingAsSymbol(c, prev, prevTile))
                     {
-                        var tile = TileDictionary[c];
-                        if (tile.PoolInstance == null) continue;
-                        var obj = Toolbox.Instance.Pool.Retrieve(tile.PoolInstance);
-                        obj.SetActive(true);
-                        var sprRender = obj.GetComponent<SpriteRenderer>();
-                        if (sprRender != null)
-                        {
-                            sprRender.flipX = sprRender.flipY = false;
-                            sprRender.sortingOrder += tile.LayerOffset;
-                        }
-                        obj.transform.rotation = Quaternion.Euler(0, 0, 0);
-                        obj.transform.position = GridToVector2(new[] { x, y }) + tile.Offset;
-                        prev = obj;
-                        prevTile = tile;
+                        var reference = CreateGridObject(c, new[] { x, y });
+                        prev = reference == null ? null : reference.Object;
+                        prevTile = reference == null ? null : reference.Tile;
                     }
-                    yield return new WaitForEndOfFrame();
                 }
             }
+        }
+        yield break;
+    }
+
+    private GridObjectReference CreateGridObject(char c, int[] xy)
+    {
+        if (!TileDictionary.ContainsKey(c)) return null;
+        var tile = TileDictionary[c];
+        if (tile.PoolInstance == null) return null;
+        var obj = Toolbox.Instance.Pool.Retrieve(tile.PoolInstance);
+        obj.SetActive(true);
+        var sprRender = obj.GetComponent<SpriteRenderer>();
+        if (sprRender != null)
+        {
+            sprRender.flipX = sprRender.flipY = false;
+            sprRender.sortingOrder += tile.LayerOffset;
+        }
+        obj.transform.rotation = Quaternion.Euler(0, 0, 0);
+        obj.transform.position = GridToVector2(xy) + tile.Offset;
+        return new GridObjectReference()
+        {
+            Object = obj,
+            Tile = tile
+        };
+    }
+
+    private IEnumerator<MakineryGear> MkLoadGoals()
+    {
+        if (_currentGoals == null) yield break;
+
+        foreach (var goal in _currentGoals)
+        {
+            for (int y = 0; y < goal.Spawn.Length; y++)
+            {
+                for (int x = 0; x < goal.Spawn[y].Length; x++)
+                {
+                    foreach (char c in goal.Spawn[y][x])
+                    {
+                        var reference = CreateGridObject(c, new[] { x, y });
+                        if (reference != null)
+                        {
+                            reference.Object.GetComponent<SpawnObject>().Spawn(GridToVector2(new[] { x, y }), this);
+                        }
+                    }
+                }
+            }
+
+            var progress = goal.GoalLogic.GetGoalProgress();
+            while (!progress.Completed)
+            {
+                CurrentGoal = progress.GoalName;
+                CurrentGoalProgress = progress.Progress;
+                yield return new WaitForFrameCountGear();
+            }
+
+            CompletedGoals++;
+        }
+    }
+
+    public void FlashTile(int[] xy, float strength, float durationInSeconds, Color color, Action onFlash = null)
+    {
+        StartCoroutine(Flash(xy, strength, durationInSeconds, color, onFlash));
+    }
+
+    private IEnumerator Flash(int[] xy, float strength, float durationInSeconds, Color color, Action onFlash)
+    {
+        var obj = Toolbox.Instance.Pool.Retrieve(GridFlash);
+        SpriteRenderer spr = obj.GetComponent<SpriteRenderer>();
+        obj.transform.position = GridToVector2(xy);
+
+        float time = durationInSeconds;
+        spr.material.SetColor("_Colorize", color);
+        spr.material.SetFloat("_Saturation", 0.6f);
+        while (time > 0)
+        {
+            spr.material.SetFloat("_Opacity", Mathf.Min(1 / time * 0.45f, 0.45f) + Mathf.Sin(time * 5) * 0.1f * strength);
+            time -= Time.deltaTime;
+            yield return new WaitForEndOfFrame();
+        }
+
+        float opacity = spr.material.GetFloat("_Opacity");
+        time = 0f;
+        while (time < 1f)
+        {
+            spr.material.SetFloat("_Opacity", Mathf.Lerp(opacity, 0, time));
+            time += Time.deltaTime * 4f;
+            yield return new WaitForEndOfFrame();
+        }
+
+        Toolbox.Instance.Pool.Release(GridFlash, obj);
+        if (onFlash != null)
+        {
+            onFlash();
         }
     }
 
@@ -198,11 +351,12 @@ public class LevelGrid : MonoBehaviour
 
     public bool IsBlocking(int x, int y)
     {
+        if (!Initialized) return false;
         if (Map.Length <= y) return true;
         if (Map[y].Length <= x) return true;
         return Map[y][x].Any(c =>
         {
-            return TileDictionary[c].Blocking;
+            return TileDictionary.ContainsKey(c) && TileDictionary[c].Blocking;
         }) ||
         _gridObjects.Any(g => g.isActiveAndEnabled && g.Blocking && Vector2ToGrid(g.transform.position).SequenceEqual(new[] { x, y }));
     }
@@ -240,11 +394,11 @@ public class LevelGrid : MonoBehaviour
         return _gridObjects.Where(g => Vector2ToGrid(g.transform.position).SequenceEqual(gridPos)).ToArray();
     }
 
-    public void TriggerGridEvent(string action, GridObject source, int[] targetTile, Dictionary<string,object> values)
+    public void TriggerGridEvent(string action, GridObject source, int[] targetTile, Dictionary<string, object> values)
     {
         if (OnGridAction == null) return;
         var sourceGridPos = Vector2ToGrid(source.transform.position);
-        foreach(var obj in _gridObjects)
+        foreach (var obj in _gridObjects)
         {
             if (!obj.isActiveAndEnabled) continue;
             var objGridPos = Vector2ToGrid(obj.transform.position);
@@ -276,5 +430,10 @@ public class LevelGrid : MonoBehaviour
         yield return new WaitForSecondsGear(seconds);
 
         Toolbox.Instance.Pool.Release(TemporaryBlock, obj);
+    }
+
+    public GridObject[] GetActiveGridObjects(GridObject.GridObjectType type)
+    {
+        return _gridObjects.Where(g => g.Type == type && g.isActiveAndEnabled).ToArray();
     }
 }

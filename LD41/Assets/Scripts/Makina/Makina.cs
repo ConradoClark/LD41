@@ -119,6 +119,8 @@ public class Makina : MonoBehaviour
 
     public void RemoveMakinery(Makinery makinery)
     {
+        if (makinery == null) return;
+        if (!ActiveMakineries.Contains(makinery.AssignedPriority)) return;
         if (Makinarium[makinery.AssignedPriority] == makinery)
         {
             Makinarium[makinery.AssignedPriority] = null;
