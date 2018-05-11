@@ -20,6 +20,7 @@ public class SpawnObject : MonoBehaviour
 
     private void Init()
     {
+        GridObject.PreRegister();
         _originalLayerOrder = SpawnedObject.sortingOrder;
         SpawnedObject.sortingOrder = Arrow.sortingOrder + 1;
         GridObject.transform.position = Destination + new Vector3(0, 7f);
@@ -114,7 +115,7 @@ public class SpawnObject : MonoBehaviour
     }
 
     public void Spawn(Vector3 Destination, LevelGrid grid)
-    {        
+    {                
         this.Destination = Destination;
         Init();
         _levelGrid = grid;

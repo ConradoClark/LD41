@@ -51,6 +51,7 @@ public class LevelGrid : MonoBehaviour
     public string CurrentGoal { get; private set; }
     public string CurrentGoalProgress { get; private set; }
     public int CompletedGoals { get; private set; }
+    public int NumberOfGoals { get; private set; }
     // Public Fields
     public Dictionary<GoalEnum, IGoal> PossibleGoals;
     public Dictionary<char, ObjectTile> TileDictionary;
@@ -232,6 +233,7 @@ public class LevelGrid : MonoBehaviour
     {
         if (_currentGoals == null) yield break;
 
+        NumberOfGoals = _currentGoals.Length;
         foreach (var goal in _currentGoals)
         {
             for (int y = 0; y < goal.Spawn.Length; y++)
@@ -252,13 +254,17 @@ public class LevelGrid : MonoBehaviour
             var progress = goal.GoalLogic.GetGoalProgress();
             while (!progress.Completed)
             {
+                progress = goal.GoalLogic.GetGoalProgress();
                 CurrentGoal = progress.GoalName;
                 CurrentGoalProgress = progress.Progress;
                 yield return new WaitForFrameCountGear();
             }
 
             CompletedGoals++;
+            CurrentGoalProgress = "";
         }
+        CurrentGoal = "All Goals Completed!";
+        CurrentGoalProgress = "Select an exit";
     }
 
     public void FlashTile(int[] xy, float strength, float durationInSeconds, Color color, Action onFlash = null)

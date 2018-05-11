@@ -18,9 +18,11 @@ public class GridObject : MonoBehaviour {
     public GridObjectType Type;
     public int Weight;
     public bool Active = true;
+    private bool _registered;
 
     // Use this for initialization
     void Start () {
+        if (_registered) return;
         LevelGrid levelGrid;
 		if (Toolbox.TryGetLevelGrid(out levelGrid))
         {
@@ -28,6 +30,16 @@ public class GridObject : MonoBehaviour {
         }
 	}
 	
+    public void PreRegister()
+    {
+        LevelGrid levelGrid;
+        if (Toolbox.TryGetLevelGrid(out levelGrid))
+        {
+            levelGrid.RegisterGridObject(this);
+            _registered = true;
+        }        
+    }
+
 	// Update is called once per frame
 	void Update () {
 		
