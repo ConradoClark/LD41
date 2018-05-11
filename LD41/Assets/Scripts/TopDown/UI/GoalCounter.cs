@@ -32,7 +32,7 @@ public class GoalCounter : MonoBehaviour
 
     private void Update()
     {
-        GoalNameText.text = _levelGrid.CurrentGoal;
+        GoalNameText.text = _numberOfGoals > 1 && _completedGoals != _numberOfGoals ? (_completedGoals + 1) + ". " + _levelGrid.CurrentGoal : _levelGrid.CurrentGoal;
         GoalProgressText.text = _levelGrid.CurrentGoalProgress;
     }
 
@@ -63,7 +63,7 @@ public class GoalCounter : MonoBehaviour
 
         if (_levelGrid.CompletedGoals == _completedGoals) yield break;
 
-        for (int i=0;i< _goals.Count; i++)
+        for (int i = 0; i < _goals.Count; i++)
         {
             if (_levelGrid.CompletedGoals > i)
             {
